@@ -30,10 +30,11 @@
         },
         "itemsPerPage": {
             "title": "Items per page",
-            "type": "integer",
+            "type": "string",
             "description": "Number of results requested per page (eBay's _ipg parameter). 240 minimizes the number of requests.",
-            "enum": [60, 120, 240],
-            "default": 240
+            "editor": "select",
+            "enum": ["60", "120", "240"],
+            "default": "240"
         },
         "maxPagesPerSearch": {
             "title": "Max pages per search term",

@@ -25,7 +25,7 @@ Example input:
 {
   "searchTerms": ["1977 topps star wars", "mandalorian topps chrome"],
   "ebayDomain": "www.ebay.com",
-  "itemsPerPage": 240,
+  "itemsPerPage": "240",
   "maxPagesPerSearch": 3,
   "maxItems": 0,
   "proxyConfiguration": { "useApifyProxy": true, "apifyProxyGroups": ["RESIDENTIAL"] }
