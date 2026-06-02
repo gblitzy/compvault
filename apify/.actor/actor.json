@@ -1,0 +1,12 @@
+{
+    "actorSpecification": 1,
+    "name": "ebay-sold-listings",
+    "title": "eBay Sold Listings Scraper",
+    "description": "Scrapes completed/sold eBay listings (final sale prices and sold dates) for a list of search terms.",
+    "version": "1.0",
+    "meta": {
+        "templateId": "custom"
+    },
+    "input": "./input_schema.json",
+    "dockerfile": "../Dockerfile"
+}

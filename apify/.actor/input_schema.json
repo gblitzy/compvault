@@ -1,0 +1,65 @@
+{
+    "title": "eBay Sold Listings Scraper Input",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "searchTerms": {
+            "title": "Search terms",
+            "type": "array",
+            "description": "One or more keyword queries to look up. Each term is searched independently against eBay's completed/sold listings.",
+            "editor": "stringList",
+            "prefill": ["star wars topps card", "star wars chrome galaxy"],
+            "example": ["1977 topps star wars", "mandalorian topps"]
+        },
+        "ebayDomain": {
+            "title": "eBay domain",
+            "type": "string",
+            "description": "Which regional eBay site to search.",
+            "editor": "select",
+            "enum": [
+                "www.ebay.com",
+                "www.ebay.co.uk",
+                "www.ebay.de",
+                "www.ebay.com.au",
+                "www.ebay.ca",
+                "www.ebay.fr",
+                "www.ebay.it",
+                "www.ebay.es"
+            ],
+            "default": "www.ebay.com"
+        },
+        "itemsPerPage": {
+            "title": "Items per page",
+            "type": "integer",
+            "description": "Number of results requested per page (eBay's _ipg parameter). 240 minimizes the number of requests.",
+            "enum": [60, 120, 240],
+            "default": 240
+        },
+        "maxPagesPerSearch": {
+            "title": "Max pages per search term",
+            "type": "integer",
+            "description": "How many result pages to fetch for each search term before stopping. Pagination stops early if a page returns no items.",
+            "default": 3,
+            "minimum": 1,
+            "maximum": 100
+        },
+        "maxItems": {
+            "title": "Max total items",
+            "type": "integer",
+            "description": "Global cap on the number of items pushed to the dataset across all search terms. Set to 0 for no limit.",
+            "default": 0,
+            "minimum": 0
+        },
+        "proxyConfiguration": {
+            "title": "Proxy configuration",
+            "type": "object",
+            "description": "eBay blocks datacenter and unproxied traffic quickly. RESIDENTIAL proxies are strongly recommended.",
+            "editor": "proxy",
+            "default": {
+                "useApifyProxy": true,
+                "apifyProxyGroups": ["RESIDENTIAL"]
+            }
+        }
+    },
+    "required": ["searchTerms"]
+}
