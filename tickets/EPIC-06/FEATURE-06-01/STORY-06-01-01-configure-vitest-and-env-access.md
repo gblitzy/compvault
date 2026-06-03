@@ -33,19 +33,19 @@ All environment provisioning for this story follows the canonical Blitzy environ
 ## Acceptance Criteria
 
 1. **(input-validation)** Given a Node runtime below 18 (for example Node 16.20.2), When harness setup runs, Then setup exits with a non-zero code and emits a message that names the `>=18` engine floor and the detected version.
-2. **(valid-output)** Given Node `>=18` and a test set in which every test passes, When `vitest run` executes, Then it discovers and runs at least one test in the TypeScript application and at least one test in the JavaScript Apify actor, and the process exits with code 0.
+2. **(valid-output)** Given Node `>=18` and a test set in which every test passes, When `vitest run` executes, Then it discovers and runs at least one test in the TypeScript application and at least one test that imports the JavaScript Apify actor's side-effect-free helper boundary, and the process exits with code 0.
 3. **(error-handling)** Given the test `DATABASE_URL` is unset, When the harness reaches database-dependent tests, Then execution halts before those tests run and the log names the missing `DATABASE_URL` variable.
-4. **(edge-case)** Given the ES-module Apify actor (`"type": "module"` in `apify/package.json`) is imported under Vitest, When a test loads the module, Then it resolves with 0 CommonJS transform errors.
+4. **(edge-case)** Given the Apify actor's side-effect-free ES-module helper boundary (`"type": "module"` in `apify/package.json`) is imported under Vitest, When a test loads that boundary, Then it resolves with 0 CommonJS transform errors AND triggers 0 actor side effects — `Actor.init()`, `Actor.getInput()`, the `searchTerms` validation, and `crawler.run()` do not execute during import.
 5. **(edge-case)** Given 0 test files match the configured globs, When `vitest run` executes, Then it reports `no test files found` and exits with the configured non-zero code rather than reporting a passing run.
 6. **(error-handling)** Given a malformed Vitest configuration file, When `vitest run` starts, Then the runner exits with a non-zero code and emits a message that names the configuration parse failure.
 
 ## Sub-tasks
 
-- Configure Vitest to include BOTH the TypeScript application globs AND the JavaScript actor (`apify/`) ESM globs in one configuration — `@platform-engineer`
+- Configure Vitest to include BOTH the TypeScript application globs AND the JavaScript actor (`apify/`) ESM globs in one configuration, so the actor's side-effect-free helper boundary is discovered without loading the side-effectful `apify/src/main.js` entrypoint — `@platform-engineer`
 - Document the Node `>=18` engine assertion that fails setup on a runtime below 18 — `@platform-engineer`
 - Document environment access citing <https://docs.blitzy.com/administration/environments> across Blitzy, Neon, and GitHub Actions — `@test-engineer`
 - Document the required-variable guard that halts execution before database-dependent tests when the test `DATABASE_URL` is unset — `@test-engineer`
-- Verify the ES-module actor resolves under Vitest with 0 CommonJS transform errors — `@platform-engineer`
+- Verify the actor's side-effect-free ES-module helper boundary resolves under Vitest with 0 CommonJS transform errors and 0 actor side effects (no `Actor.init()`, `Actor.getInput()`, `searchTerms` validation, or `crawler.run()` on import); coordinate this boundary with STORY-06-02-03 so helper unit tests import the real helpers without running the scraper — `@platform-engineer`
 
 ## Edge Cases
 
@@ -69,18 +69,18 @@ All environment provisioning for this story follows the canonical Blitzy environ
 ## Story Estimation Guidance
 
 - **Effort: Medium** — one Vitest configuration spans two language targets (TypeScript application globs and JavaScript ESM actor globs) plus the environment-access documentation, which exceeds a single-file change.
-- **Complexity: Medium** — the configuration must run an ES-module actor that uses top-level `await` under the same runner as the TypeScript application with 0 CommonJS transform errors, and must enforce both the Node `>=18` floor and the `DATABASE_URL` guard.
+- **Complexity: Medium** — the configuration must load the actor's side-effect-free ES-module helper boundary under the same runner as the TypeScript application with 0 CommonJS transform errors (without triggering the top-level `await Actor.init()`/`crawler.run()` entrypoint in `apify/src/main.js`), and must enforce both the Node `>=18` floor and the `DATABASE_URL` guard.
 - **Uncertainty: Low** — the runner (Vitest), the runtime floor (Node `>=18`), and the actor module type (`"type": "module"`) are fixed by `apify/package.json`, which leaves the resolution path defined ahead of implementation.
 - **Estimate: 5 points (Fibonacci).** The cross-target configuration and the environment-access wiring place this above a 3; the absence of unknown external integrations keeps it below an 8.
 
 ## Definition of Done
 
-- [ ] A single Vitest configuration runs both the TypeScript application and the ES-module JavaScript Apify actor under Node `>=18`.
+- [ ] A single Vitest configuration runs both the TypeScript application and the ES-module JavaScript Apify actor's helper boundary under Node `>=18`.
 - [ ] Environment access is documented and cites <https://docs.blitzy.com/administration/environments>.
 - [ ] The Blitzy, Neon, and GitHub Actions platforms are enumerated, and the required test `DATABASE_URL` encrypted secret is named.
 - [ ] The Node `>=18` floor is stated for both the TypeScript application and the JavaScript actor, matching the actor's `engines.node` declaration.
-- [ ] The ES-module actor resolves under Vitest with 0 CommonJS transform errors.
+- [ ] The actor's side-effect-free ES-module helper boundary resolves under Vitest with 0 CommonJS transform errors and triggers 0 actor side effects on import (no `Actor.init()`, `Actor.getInput()`, `searchTerms` validation, or `crawler.run()`).
 - [ ] The required-variable guard halts execution before database-dependent tests when the test `DATABASE_URL` is unset and names the missing variable.
 - [ ] No prohibited vague terms appear in the acceptance criteria.
 - [ ] All relative links resolve: the parent feature index, the parent epic index, and the two sibling stories.
-- [ ] **Testing:** `vitest run` executes the TypeScript app and JavaScript actor suites green under Node `>=18`.
+- [ ] **Testing:** `vitest run` executes the TypeScript app suite and the JavaScript actor helper-boundary suite green under Node `>=18`.
