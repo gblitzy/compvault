@@ -19,8 +19,9 @@ All migration commands (`drizzle-kit generate` and `drizzle-kit migrate`) and `d
 3. **(valid-output)** **Given** `db/schema.ts`, **When** the initial migration is generated, **Then** a single migration set is produced that creates all 9 enums and all 20 tables.
 4. **(valid-output)** **Given** the generated migration set, **When** it is applied to a fresh Neon branch through the unpooled `DATABASE_URL_UNPOOLED`, **Then** the run exits 0 and all 20 tables exist in the branch.
 5. **(valid-output)** **Given** the migration applied to a fresh branch, **When** the resulting schema is inspected, **Then** the `raw_listing` `UNIQUE (source, source_item_id)` constraint and the `valuation` `UNIQUE NULLS NOT DISTINCT (variation_id, grade_id, window_days, cost_basis)` constraint both exist.
-6. **(error-handling)** **Given** the pooled `DATABASE_URL` is supplied in place of the unpooled `DATABASE_URL_UNPOOLED`, **When** migrations run, **Then** the run is rejected and exits non-zero (mixing the pooled and unpooled connections breaks migrations).
-7. **(edge-case)** **Given** an unchanged `db/schema.ts`, **When** the migration is re-generated, **Then** 0 new migration files are produced.
+6. **(valid-output)** **Given** the SQL generated from `db/schema.ts` (the generated migration set), **When** it is diffed against the canonical `docs/schema.sql`, **Then** the diff reports 0 missing and 0 renamed enums, tables, constraints, indexes, and named columns, and the migration is not accepted until that count reaches 0.
+7. **(error-handling)** **Given** the pooled `DATABASE_URL` is supplied in place of the unpooled `DATABASE_URL_UNPOOLED`, **When** migrations run, **Then** the run is rejected and exits non-zero (mixing the pooled and unpooled connections breaks migrations).
+8. **(edge-case)** **Given** an unchanged `db/schema.ts`, **When** the migration is re-generated, **Then** 0 new migration files are produced.
 
 ## Sub-tasks
 
@@ -30,6 +31,7 @@ All migration commands (`drizzle-kit generate` and `drizzle-kit migrate`) and `d
 - Add a fail-fast guard that exits non-zero with a named missing-variable error when `DATABASE_URL_UNPOOLED` is absent — `@devops-engineer`
 - Document that the pooled `DATABASE_URL` is rejected for migration runs because mixing the pooled and unpooled connections breaks migrations — `@database-engineer`
 - Verify the generated migration reproduces the `raw_listing UNIQUE (source, source_item_id)` and `valuation UNIQUE NULLS NOT DISTINCT (variation_id, grade_id, window_days, cost_basis)` constraints on the branch — `@database-engineer`
+- Diff the SQL generated from `db/schema.ts` (the generated migration set) against the canonical `docs/schema.sql` and resolve every difference so the diff reports 0 missing and 0 renamed enums, tables, constraints, indexes, and named columns before the migration is accepted — `@database-engineer`
 
 ## Edge Cases
 
@@ -65,6 +67,7 @@ All migration commands (`drizzle-kit generate` and `drizzle-kit migrate`) and `d
 - [ ] The initial migration set generates from `db/schema.ts` and creates all 9 enums and all 20 tables.
 - [ ] The migration applies on a fresh Neon branch through the unpooled `DATABASE_URL_UNPOOLED` with exit 0, and all 20 tables exist in the branch.
 - [ ] The generated migration reproduces the `raw_listing UNIQUE (source, source_item_id)` and `valuation UNIQUE NULLS NOT DISTINCT (variation_id, grade_id, window_days, cost_basis)` constraints.
+- [ ] The SQL generated from `db/schema.ts` is diffed against `docs/schema.sql` and reports 0 missing and 0 renamed enums, tables, constraints, indexes, and named columns before the migration is accepted.
 - [ ] An absent `DATABASE_URL_UNPOOLED` fails with a named missing-variable error (exit non-zero) and writes no migration.
 - [ ] Using the pooled `DATABASE_URL` for migrations is documented as a failure (mixing the pooled and unpooled connections breaks migrations).
 - [ ] Re-generating against an unchanged `db/schema.ts` produces 0 new migration files.

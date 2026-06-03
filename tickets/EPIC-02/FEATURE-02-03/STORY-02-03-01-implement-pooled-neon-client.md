@@ -18,6 +18,7 @@ The pooled `DATABASE_URL` secret is provisioned per [FEATURE-02-01 — Neon Proj
 4. **(error-handling)** **Given** an unreachable database host, **When** a query runs through the client, **Then** the client surfaces a named connection error after a bounded retry count of 3 attempts and returns control rather than retrying without bound.
 5. **(edge-case)** **Given** the unpooled `DATABASE_URL_UNPOOLED` is supplied as the runtime connection string, **When** the client initializes, **Then** the misconfiguration is flagged with a named error because the runtime path requires the pooled `DATABASE_URL`.
 6. **(edge-case)** **Given** more than one serverless invocation, **When** they query concurrently through `db/client.ts`, **Then** they share the single exported pooled client instance and open no more than the pool's bounded connection count.
+7. **(valid-output)** **Given** the query helpers exported by `db/client.ts`, **When** their read and write paths are inspected, **Then** every path executes through Drizzle ORM or a parameterized driver call, 0 paths build SQL by string concatenation, and a static check (or test) confirms 0 string-concatenated SQL statements.
 
 ## Sub-tasks
 
@@ -26,6 +27,7 @@ The pooled `DATABASE_URL` secret is provisioned per [FEATURE-02-01 — Neon Proj
 - Wire the `ws` WebSocket dependency the `@neondatabase/serverless` driver requires and confirm a `SELECT 1` health query returns 1 row with 0 connection errors — `@backend-engineer`
 - Bound connection-failure handling to a retry count of 3 attempts so an unreachable host surfaces a named error and does not retry without bound — `@backend-engineer`
 - Document that the unpooled `DATABASE_URL_UNPOOLED` is not read at runtime (it is reserved for DDL and migrations under `FEATURE-02-02`) and flag its use as the runtime connection string as a misconfiguration — `@devops-engineer`
+- Route every read and write exposed by `db/client.ts` through Drizzle ORM or parameterized driver calls, build 0 SQL strings by concatenation, and add a static check (or test) that fails on any string-concatenated SQL — `@backend-engineer`
 
 ## Edge Cases
 
@@ -65,6 +67,7 @@ The pooled `DATABASE_URL` secret is provisioned per [FEATURE-02-01 — Neon Proj
 - [ ] An unreachable host surfaces a named connection error after a bounded retry count of 3 attempts and does not retry without bound.
 - [ ] Supplying the unpooled `DATABASE_URL_UNPOOLED` as the runtime connection string is documented as a flagged misconfiguration (the runtime path requires the pooled `DATABASE_URL`).
 - [ ] Concurrent serverless invocations share the single exported pooled client instance and open no more than the pool's bounded connection count.
+- [ ] Every read and write exposed by `db/client.ts` executes through Drizzle ORM or parameterized driver calls, with 0 string-concatenated SQL, and a static check (or test) confirms 0 string-concatenated SQL statements.
 - [ ] No prohibited vague quality term appears in any acceptance criterion; every criterion names a measurable pass/fail condition (a named error, "1 row", "0 connection errors", or "3 attempts").
 - [ ] All relative links resolve: the parent feature index, the parent epic index, the `FEATURE-02-01` stories `STORY-02-01-01` and `STORY-02-01-04`, and the sibling stories `STORY-02-03-02` and `STORY-02-03-03`; `EPIC-01`, `EPIC-04`, and `FEATURE-02-02` are cited by plain identifier.
 - [ ] **Testing:** an integration test on a Neon branch opens the pooled client, runs a `SELECT 1` health query returning 1 row, and asserts that a missing `DATABASE_URL` throws a named error before any query is issued.

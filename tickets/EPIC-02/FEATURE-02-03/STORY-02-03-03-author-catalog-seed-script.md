@@ -18,6 +18,7 @@ The seed writes to a Neon branch provisioned per [FEATURE-02-01 — Neon Project
 4. **(error-handling)** **Given** a foreign-key target that is absent (for example, a `variation` referencing a `parallel_type` that was not seeded), **When** the seed runs, **Then** it fails with a named error and leaves 0 orphan rows.
 5. **(valid-output)** **Given** the seed completes, **When** `app_user` is queried, **Then** exactly one operator row exists — the row `getUserId()` returns — keyed on `app_user.email`.
 6. **(valid-output)** **Given** the seed completes, **When** the `source` value of each seeded `card_set`, `card`, and `variation` row is inspected, **Then** every physical row carries a `catalog_source` of `topps_odds`, `checklist_db`, or `manual`, and 0 rows carry `listing_derived` (digital SWCT rows are derived by `EPIC-03` ingestion, not seeded here).
+7. **(valid-output)** **Given** every seed insert and upsert in the script, **When** the seed write paths are inspected, **Then** each executes through Drizzle ORM or a parameterized statement, 0 paths build SQL by string concatenation, and a static check (or test) over the seed path confirms 0 string-concatenated SQL.
 
 ## Sub-tasks
 
@@ -27,6 +28,7 @@ The seed writes to a Neon branch provisioned per [FEATURE-02-01 — Neon Project
 - Reject any entry missing a required field (for example a `card` without a `set_id`) with a named validation error and insert 0 partial rows — `@database-engineer`
 - Resolve `card_character` many-to-many links to existing `card` and `character` rows, and fail with a named error on an absent foreign-key target so 0 orphan rows remain — `@backend-engineer`
 - Provide the single operator `app_user` row that `getUserId()` returns ([STORY-02-03-02](STORY-02-03-02-implement-getuserid-seam.md)), keyed on `app_user.email` so a re-run does not insert a second operator row — `@backend-engineer`
+- Write every seed insert and upsert through Drizzle ORM or parameterized statements, build 0 SQL strings by concatenation, and add a static check (or test) over the seed path that fails on any string-concatenated SQL — `@database-engineer`
 
 ## Edge Cases
 
@@ -66,6 +68,7 @@ The seed writes to a Neon branch provisioned per [FEATURE-02-01 — Neon Project
 - [ ] An absent foreign-key target (for example a `variation` referencing an unseeded `parallel_type`) fails with a named error and leaves 0 orphan rows.
 - [ ] Every `card_character` link resolves to an existing `card` row and an existing `character` row.
 - [ ] The seed inserts 0 rows into `sale_observation`, `raw_listing`, `extraction`, and `valuation` — sales ingestion and the digital catalog are `EPIC-03`'s responsibility, not this seed's.
+- [ ] Every seed insert and upsert executes through Drizzle ORM or parameterized statements, with 0 string-concatenated SQL, and a static check (or test) over the seed path confirms 0 string-concatenated SQL.
 - [ ] No prohibited vague quality term appears in any acceptance criterion; every criterion names a measurable pass/fail condition (an exact count, a named error, or a named table).
 - [ ] All relative links resolve: the parent feature index, the parent epic index, the `FEATURE-02-01` and `FEATURE-02-02` indexes, and the sibling stories `STORY-02-03-01` and `STORY-02-03-02`.
 - [ ] **Testing:** an integration test on a Neon branch runs the seed twice and asserts that every seeded table's row count is identical after the second run (idempotent) and that all referential links (`card_character`, and `variation` → `card` / `parallel_type`) resolve.

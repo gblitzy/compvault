@@ -18,14 +18,16 @@ This story adds no new platform access: the seam reads the operator `app_user` r
 4. **(edge-case)** **Given** repeated calls within a single request, **When** `getUserId()` is invoked more than once, **Then** every call returns the same `BIGINT` id (deterministic).
 5. **(valid-output)** **Given** the function signature, **When** its return type is inspected, **Then** the return type is the `app_user.id` type (`BIGINT`), so wiring a per-request user id later changes no handler signature (non-breaking).
 6. **(edge-case)** **Given** `owner_user_id` on `watchlist`, `collection_item`, and `saved_search`, **When** a v1 row is written through a handler that calls `getUserId()`, **Then** `owner_user_id` is left NULL on that row (the single-operator convention from `docs/schema.sql`).
+7. **(valid-output)** **Given** the `getUserId()` implementation, **When** its `app_user` read is inspected, **Then** the read executes through Drizzle ORM or a parameterized query, 0 SQL is built by string concatenation, and a static check (or test) confirms 0 string-concatenated SQL in the lookup.
 
 ## Sub-tasks
 
-- Implement `getUserId()` to query the seeded operator `app_user` row and return its non-null `BIGINT` id — `@backend-engineer`
+- Implement `getUserId()` to query the seeded operator `app_user` row through Drizzle ORM or a parameterized query (0 string-concatenated SQL) and return its non-null `BIGINT` id — `@backend-engineer`
 - Raise a named missing-seed error that identifies the absent operator row when no operator `app_user` row exists, returning no value instead of a silent null — `@backend-engineer`
 - Apply a deterministic selection (the lowest `app_user.id`) so repeated calls within one request return the same id even when more than one operator row is present — `@backend-engineer`
 - Type the return value as the `app_user.id` type (`BIGINT`) so a future per-request user id is a non-breaking substitution at this single call site — `@backend-engineer`
 - Confirm the seam reads no request token and runs no authentication in v1, and that v1 handlers leave `owner_user_id` NULL on `watchlist`, `collection_item`, and `saved_search` — `@database-engineer`
+- Add a static check (or test) over the `getUserId()` lookup that confirms the `app_user` read uses Drizzle ORM or a parameterized query and that 0 string-concatenated SQL is present — `@backend-engineer`
 
 ## Edge Cases
 
@@ -62,6 +64,7 @@ This story adds no new platform access: the seam reads the operator `app_user` r
 - [ ] An operator row whose `id` resolves to null raises a named error rather than returning a null id.
 - [ ] The return type is the `app_user.id` type (`BIGINT`), so a future per-request user id is a non-breaking substitution at this call site.
 - [ ] V1 handlers calling `getUserId()` leave `owner_user_id` NULL on `watchlist`, `collection_item`, and `saved_search`.
+- [ ] The `getUserId()` `app_user` read executes through Drizzle ORM or a parameterized query, with 0 string-concatenated SQL, and a static check (or test) confirms 0 string-concatenated SQL in the lookup.
 - [ ] No prohibited vague quality term appears in any acceptance criterion; every criterion names a measurable pass/fail condition (a non-null `BIGINT` id, a named error, or the same id).
 - [ ] All relative links resolve: the parent feature index, the parent epic index, and the sibling stories `STORY-02-03-01` and `STORY-02-03-03`; `FEATURE-02-02` and `EPIC-04` are cited by plain identifier.
 - [ ] **Testing:** a unit/integration test asserts `getUserId()` returns the seeded operator's non-null `BIGINT` id and raises the named missing-seed error when the operator `app_user` row is absent.
