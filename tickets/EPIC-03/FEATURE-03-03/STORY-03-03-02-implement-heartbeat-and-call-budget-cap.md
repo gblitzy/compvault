@@ -2,17 +2,17 @@
 
 *Parent feature: [FEATURE-03-03 — Scheduled Ingestion Orchestration](../FEATURE-03-03-scheduled-ingestion-orchestration.md) · Parent epic: [EPIC-03 — Data Ingestion Pipeline](../../EPIC-03-data-ingestion-pipeline.md)*
 
-This is the **second** of the three stories in FEATURE-03-03 (Scheduled Ingestion Orchestration). It **instruments** the daily GitHub Actions workflow (`ingest.yml`) created by **STORY-03-03-01** with two controls: (1) an **ingestion-run heartbeat** — exactly 1 `ingestion_run` row per run that records the run lifecycle and its telemetry — and (2) a **hard daily call-budget cap** — at most **5,000 eBay Browse calls per day with a HALT at 4,500**, tracked through `ingestion_run.calls_used`. This is a planning ticket and authors no application code, no SQL body, and no workflow YAML file body; the run heartbeat and the budget-cap logic are authored when this story is executed.
+This is the **second** of the three stories in FEATURE-03-03 (Scheduled Ingestion Orchestration). It **instruments** the daily GitHub Actions workflow (`ingest.yml`) created by **STORY-03-03-01** with two controls: (1) an **ingestion-run heartbeat** — exactly 1 `ingestion_run` row per run that records the run lifecycle and its telemetry — and (2) a **hard daily call-budget cap** — at most **5,000 active source fetch requests per day with a HALT at 4,500**, tracked through `ingestion_run.calls_used`. On the active path that counter counts the Apify actor's fetched eBay result pages/requests (bounded per search term by the actor input `maxPagesPerSearch` and globally by `maxItems`); the deferred eBay Browse API contributes 0 to `calls_used` until **STORY-03-03-03** is unblocked. This is a planning ticket and authors no application code, no SQL body, and no workflow YAML file body; the run heartbeat and the budget-cap logic are authored when this story is executed.
 
 The **heartbeat** is the mechanism that makes a missed or silently-failed run visible. On start, the run inserts 1 `ingestion_run` row with `started_at` and `status` = `running`; on completion it updates that same row with `finished_at`, a terminal `status` of `ok` or `failed`, and the run counters `items_seen`, `items_new`, `sales_recorded`, `queued_for_review`, `error_count`, and `calls_used`. A run that crashes never reaches its finalize step, so it remains in `status` = `running` with a null `finished_at`; a later run detects that stale row and the admin job monitor raises a freshness alert for the missed run.
 
-The **budget cap** keeps eBay call volume under the free-tier ceiling. The run increments `ingestion_run.calls_used` atomically on every eBay Browse call and **halts fetching once `calls_used` reaches 4,500** — the 90% safety threshold of the ≤5,000-per-day budget fixed by the PRD — then resumes on the next cycle. The pipeline is **idempotent and resumable**: a halted run records its progress and the next run continues, and re-running over overlapping result sets writes no duplicate rows because persistence upserts on `(source, source_item_id)` (per **STORY-03-01-03**). Every database write this run performs targets the pooled `DATABASE_URL` on an EPIC-02 Neon branch — never the unpooled `DATABASE_URL_UNPOOLED` reserved for DDL and migrations — and depends on EPIC-02's Neon branching (`STORY-02-01-*`) being provisioned first. A fatal error that exits the process with a non-zero code sets `ingestion_run.status` = `failed`, fails the GitHub Action, and triggers GitHub's failure email to the operator.
+The **budget cap** keeps source-fetch volume under the free-tier ceiling. On the active path the run increments `ingestion_run.calls_used` atomically on every Apify-fetched eBay result page/request (bounded per search term by the actor input `maxPagesPerSearch` and globally by `maxItems`) and **halts fetching once `calls_used` reaches 4,500** — the 90% safety threshold of the ≤5,000-per-day budget fixed by the PRD — then resumes on the next cycle; the deferred eBay Browse API contributes 0 to `calls_used` until **STORY-03-03-03** is unblocked, at which point Browse calls are counted in the same budget. The pipeline is **idempotent and resumable**: a halted run records its progress and the next run continues, and re-running over overlapping result sets writes no duplicate rows because persistence upserts on `(source, source_item_id)` (per **STORY-03-01-03**). Every database write this run performs targets the pooled `DATABASE_URL` on an EPIC-02 Neon branch — never the unpooled `DATABASE_URL_UNPOOLED` reserved for DDL and migrations — and depends on EPIC-02's Neon branching (`STORY-02-01-*`) being provisioned first. A fatal error that exits the process with a non-zero code sets `ingestion_run.status` = `failed`, fails the GitHub Action, and triggers GitHub's failure email to the operator.
 
 **Compliance posture:** the main application calls official data sources only; the `ebay-sold-listings` Apify actor is the single sanctioned out-of-band scraping exception; and 0 LLM calls run inside any request handler — the LLM-fallback parser runs inside this batch job only. The `status` field is a TEXT column whose value set is `running`, `ok`, and `failed` (a fixed value set, not a Postgres enum).
 
 ## User Story
 
-> **As a** Data/Ingestion Engineer, **I want** each run to write a heartbeat row and enforce a hard daily call budget, **so that** a missed or failed run is visible and the eBay Browse call volume never exceeds the daily limit.
+> **As a** Data/Ingestion Engineer, **I want** each run to write a heartbeat row and enforce a hard daily call budget, **so that** a missed or failed run is visible and the active source-fetch volume never exceeds the daily limit.
 
 ## Acceptance Criteria
 
@@ -22,7 +22,7 @@ The **budget cap** keeps eBay call volume under the free-tier ceiling. The run i
 
 3. **(valid-output — heartbeat finalize)** **Given** a run completes without a fatal error, **When** it finishes, **Then** the same `ingestion_run` row is updated with `finished_at` set, `status` = `ok`, and the counters `items_seen`, `items_new`, `sales_recorded`, `queued_for_review`, `error_count`, and `calls_used` written.
 
-4. **(boundary — budget halt)** **Given** `ingestion_run.calls_used` reaches 4,500, **When** the next batch of eBay Browse calls is requested, **Then** the job stops fetching before `calls_used` exceeds 5,000 and resumes on the next cycle, recording the run with a terminal `status` = `ok` rather than aborting it as `failed`.
+4. **(boundary — budget halt)** **Given** `ingestion_run.calls_used` reaches 4,500, **When** the next batch of active source fetches (Apify-fetched eBay result pages/requests) is requested, **Then** the job stops fetching before `calls_used` exceeds 5,000 and resumes on the next cycle, recording the run with a terminal `status` = `ok` rather than aborting it as `failed`.
 
 5. **(error-handling — non-zero exit)** **Given** the pipeline raises a fatal error, **When** the process exits with a non-zero code, **Then** the `ingestion_run` row is set to `status` = `failed`, the GitHub Action fails, and GitHub emails the operator.
 
@@ -30,13 +30,13 @@ The **budget cap** keeps eBay call volume under the free-tier ceiling. The run i
 
 7. **(edge-case — zero enabled queries)** **Given** 0 `ingestion_query` rows have `enabled` = TRUE, **When** the run executes, **Then** `items_seen` = 0, `calls_used` = 0, and the run records `status` = `ok`, so an empty run is not recorded as a failure.
 
-8. **(concurrent — atomic counter)** **Given** concurrent increments to `calls_used` within a single run, **When** 2 increments occur, **Then** each increment is applied atomically so `calls_used` equals the exact total count of eBay Browse calls issued.
+8. **(concurrent — atomic counter)** **Given** concurrent increments to `calls_used` within a single run, **When** 2 increments occur, **Then** each increment is applied atomically so `calls_used` equals the exact total count of active source fetch requests issued.
 
 ## Sub-tasks
 
 - Insert 1 `ingestion_run` row at run start with `started_at` set and `status` = `running`. `@ingestion-engineer`
 - On completion, set `finished_at`, set `status` to `ok` or `failed`, and write `items_seen`, `items_new`, `sales_recorded`, `queued_for_review`, `error_count`, and `calls_used`. `@ingestion-engineer`
-- Increment `ingestion_run.calls_used` atomically on every eBay Browse call. `@ingestion-engineer`
+- Increment `ingestion_run.calls_used` atomically on every active source fetch request — on the active path each Apify-fetched eBay result page/request, bounded per search term by `maxPagesPerSearch` and globally by `maxItems`; deferred eBay Browse calls contribute 0 until **STORY-03-03-03** is unblocked. `@ingestion-engineer`
 - Halt fetching when `calls_used` reaches 4,500 (90% of the 5,000-per-day budget) and resume on the next cycle. `@ingestion-engineer`
 - Map a non-zero process exit to `status` = `failed` so the GitHub Action fails and GitHub emails the operator. `@devops-engineer`
 - Detect a prior run left in `status` = `running` with a null `finished_at` and flag it as a stale/missed run for the admin monitor's freshness alert. `@ingestion-engineer`
@@ -49,7 +49,7 @@ The **budget cap** keeps eBay call volume under the free-tier ceiling. The run i
 - **(Concurrent / crash)** a crash mid-run leaves `status` = `running` with a null `finished_at` → a later run flags the stale row and the monitor raises a freshness alert.
 - **(Empty/Null)** 0 enabled `ingestion_query` rows → `items_seen` = 0, `calls_used` = 0, and the run records `status` = `ok`.
 - **(Invalid / transient)** a transient fetch error increments `error_count` by 1 without aborting the run; the run aborts and sets `status` = `failed` only when `error_count` reaches its configured threshold.
-- **(Concurrent)** concurrent `calls_used` increments are atomic → the counter equals the exact count of eBay Browse calls issued.
+- **(Concurrent)** concurrent `calls_used` increments are atomic → the counter equals the exact count of active source fetch requests issued.
 
 ## Dependencies
 
@@ -77,7 +77,7 @@ The **budget cap** keeps eBay call volume under the free-tier ceiling. The run i
 ## Definition of Done
 
 - [ ] Each run inserts 1 `ingestion_run` row (`started_at` set, `status` = `running`) and finalizes it (`finished_at` set, `status` = `ok` or `failed`, and `items_seen`, `items_new`, `sales_recorded`, `queued_for_review`, `error_count`, and `calls_used` written).
-- [ ] `calls_used` is incremented atomically per eBay Browse call; the job halts at `calls_used` = 4,500 of the ≤5,000-per-day budget and resumes the next cycle; the pipeline is idempotent and resumable.
+- [ ] `calls_used` is incremented atomically per active source fetch request (on the active path each Apify-fetched eBay result page/request, bounded by `maxPagesPerSearch`/`maxItems`; deferred eBay Browse calls contribute 0 until **STORY-03-03-03** is unblocked); the job halts at `calls_used` = 4,500 of the ≤5,000-per-day budget and resumes the next cycle; the pipeline is idempotent and resumable.
 - [ ] A non-zero process exit sets `status` = `failed`, fails the GitHub Action, and triggers the GitHub failure email.
 - [ ] A prior run left in `status` = `running` with a null `finished_at` is flagged as stale so the monitor raises a freshness alert.
 - [ ] A run with 0 enabled `ingestion_query` rows records `status` = `ok` with `items_seen` = 0 and `calls_used` = 0.

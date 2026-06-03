@@ -26,6 +26,8 @@ Fragmentation arises because the auto-derived digital catalog can mint **distinc
 
 7. **(Input-validation / empty catalog)** **Given** zero listing-derived digital variations exist (an empty digital catalog), **When** the pass runs, **Then** it completes as a no-op, writes zero `review_queue` rows, mutates zero `variation` rows, and raises no error.
 
+8. **(Error-handling / review-queue write failure)** **Given** a detected `merge_candidate` whose `review_queue` insert fails or times out, **When** the pass attempts to record that candidate group, **Then** zero `variation` rows are mutated for that group, the failure is logged and `ingestion_run.error_count` is incremented by 1, and the pass continues to the next candidate group — aborting the batch with a non-zero exit and `ingestion_run.status='failed'` only when `error_count` reaches its configured threshold.
+
 ## Sub-tasks
 
 - Select candidate variations where `source='listing_derived'` and `format='digital'` for comparison, and exclude every other `source` value and the `physical` format. `@data-eng`
@@ -34,7 +36,8 @@ Fragmentation arises because the auto-derived digital catalog can mint **distinc
 - Add an idempotency guard that checks for an existing open `merge_candidate` for the same pair before writing, so a pair already queued is not re-queued. `@data-eng`
 - Guarantee no catalog row is auto-deleted or auto-merged — zero `variation` rows change — surfacing candidates only. `@data-eng`
 - Exclude seeded physical variations (`source` `topps_odds`/`checklist_db`) and any `physical`-format row from the pass. `@data-eng`
-- Author re-clustering unit tests over digital-variation fixtures covering the no-duplicates no-op, the `print_run` distinction, and the already-open-candidate idempotency guard, targeting a ≥90% coverage floor. `@qa-engineer`
+- On a failed or timed-out `review_queue` insert for a `merge_candidate`, mutate zero `variation` rows for that group, log the failure, increment `ingestion_run.error_count` by 1, and continue to the next group — aborting with a non-zero exit (`status='failed'`) only when `error_count` reaches its configured threshold. `@data-eng`
+- Author re-clustering unit tests over digital-variation fixtures covering the no-duplicates no-op, the `print_run` distinction, the already-open-candidate idempotency guard, and a forced `review_queue` insert failure that mutates zero `variation` rows and increments `ingestion_run.error_count`, targeting a ≥90% coverage floor. `@qa-engineer`
 
 ## Edge Cases
 
@@ -74,6 +77,7 @@ Fragmentation arises because the auto-derived digital catalog can mint **distinc
 - [ ] Two variations that match on logical card and parallel but differ in `print_run` are NOT flagged as duplicates (zero `merge_candidate` rows for that pair).
 - [ ] No catalog row is auto-deleted or auto-merged — zero `variation` rows change; merge candidates are surfaced for operator confirmation only.
 - [ ] The pass is idempotent: a pair already open as `kind='merge_candidate'` is not re-queued (row count stays at one), and an empty digital catalog is a no-op with zero `review_queue` rows.
+- [ ] A failed or timed-out `review_queue` insert for a `merge_candidate` mutates zero `variation` rows, logs the failure, increments `ingestion_run.error_count` by 1, and lets the pass continue — aborting with a non-zero exit and `status='failed'` only when `error_count` reaches its configured threshold.
 - [ ] The pass runs inside the batch ingestion job only — no request handler executes it and no request handler issues an LLM call; the main application reads official data sources only, with the Apify actor as the single sanctioned out-of-band scraping exception.
 - [ ] No prohibited vague quality term appears in any acceptance criterion, and every criterion names a measurable pass/fail condition (for example, `kind='merge_candidate'`, "exactly one row", "zero `review_queue` rows").
 - [ ] **Testing:** re-clustering unit tests against digital-variation fixtures pass and meet a **≥90%** coverage target (EPIC-06 `STORY-06-02-01`), covering the no-duplicates no-op, the `print_run` distinction, and the already-open-candidate idempotency guard.

@@ -20,7 +20,7 @@ Per the Blitzy environments reference <https://docs.blitzy.com/administration/en
 
 3. **(input-validation / error-handling)** **Given** `APIFY_TOKEN` is unset or an empty string, **When** the ingestion job reads it at startup, **Then** startup halts with a non-zero exit code before any actor run and a log line names the missing `APIFY_TOKEN`.
 
-4. **(error-handling — invalid credential)** **Given** an invalid or expired `APIFY_TOKEN`, **When** the actor invocation is attempted, **Then** the Apify Platform returns HTTP 401 and the job records an authentication-failure error and does not retry past `maxRequestRetries` (5).
+4. **(error-handling — invalid credential)** **Given** an invalid or expired `APIFY_TOKEN`, **When** the actor invocation is attempted, **Then** the Apify Platform returns HTTP 401 and the job **fails fast** — it records an authentication-failure error and exits with a non-zero code **without retrying the authentication** (the authentication check is not subject to page-level retries; the actor's `maxRequestRetries` = 5 governs in-run page/anti-bot retries only and is set in [STORY-03-01-02](STORY-03-01-02-invoke-actor-and-persist-raw-listings.md)).
 
 5. **(edge-case / boundary — environment isolation)** **Given** `APIFY_TOKEN` exists in the local environment but is absent from the CI encrypted secrets, **When** a CI run starts, **Then** the CI run is blocked with a non-zero exit that names the missing CI secret, and the local token is never read by CI.
 
@@ -39,7 +39,7 @@ Per the Blitzy environments reference <https://docs.blitzy.com/administration/en
 ## Edge Cases
 
 - **Empty/Null:** `APIFY_TOKEN` unset or an empty string → invocation fails fast with a non-zero exit and a logged error that names `APIFY_TOKEN`, before any actor run.
-- **Invalid:** token present but invalid or expired → the Apify Platform returns HTTP 401 → the authentication-failure error path is taken and the job does not retry past `maxRequestRetries` (5).
+- **Invalid:** token present but invalid or expired → the Apify Platform returns HTTP 401 → the job **fails fast** on the authentication-failure error path and exits with a non-zero code **without retrying the authentication** (the actor's `maxRequestRetries` = 5 applies to in-run page/anti-bot retries only, not to the authentication check).
 - **Boundary (environment isolation):** token configured locally but absent from the CI encrypted secrets → the CI run is blocked with a non-zero exit until the CI secret is configured; the local token is never read by CI.
 - **Invalid (runtime):** Node major version below 18 → startup halts with a non-zero exit and a logged Node version error.
 
