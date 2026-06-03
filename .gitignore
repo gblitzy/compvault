@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# Build / cache
+.next/
+dist/
+build/
+coverage/
+
+# Apify local storage
+apify_storage/
+crawlee_storage/
+storage/
+
+# OS / editor
+.DS_Store
+
+# Lock files — regenerated from manifests; not version-controlled in this setup baseline
+package-lock.json
