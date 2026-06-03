@@ -2,13 +2,45 @@
 
 Feature → [FEATURE-04-02 — Search & Detail Endpoints](../FEATURE-04-02-search-and-detail-endpoints.md) · Epic → [EPIC-04 — Backend Application & API](../../EPIC-04-backend-application-and-api.md)
 
-This is the **fourth and last** of the four stories in FEATURE-04-02 (Search & Detail Endpoints). It specifies the **90-day / 1-year price-history and trend endpoint**, backed by the precomputed `valuation` cache defined in `docs/schema.sql`, that powers the EPIC-05 detail-page price-history chart (PRD §4.3 FR-8), the trend indicator (PRD §4.3 FR-9), and the per-card "last updated" timestamp (PRD §4.7 FR-14). The endpoint is a read-only consumer of the cache: the `valuation` rows are computed by the EPIC-03 periodic recompute job from `sale_observation` (PRD §6.5), so this handler computes no valuation in the request path and issues no LLM call. Built on the FEATURE-04-01 scaffolding, the handler opens a short-lived Neon connection through the **pooled** `DATABASE_URL` — never the unpooled `DATABASE_URL_UNPOOLED`, which EPIC-02 reserves for DDL and migrations — threads the operator `userId` from the `getUserId()` seam (v1 = the single seeded operator), validates the `window` query parameter and returns HTTP **400** with a named `error` field on a malformed value, and reads official data sources only. Per the PRD §6.6 data partition, `valuation` is **GLOBAL** shared data: the read is scoped by `variation_id` (and optional `grade_id`), never filtered by `userId`.
+This is the **fourth and last** of the four stories in FEATURE-04-02 (Search & Detail Endpoints). It specifies the **90-day / 1-year price-history and trend endpoint**, backed by the precomputed `valuation` cache defined in `docs/schema.sql`, that powers the EPIC-05 detail-page price-history chart (PRD §4.3 FR-8), the trend indicator (PRD §4.3 FR-9), and the per-card "last updated" timestamp (PRD §4.7 FR-14). The endpoint is a read-only consumer of the cache: the `valuation` rows are recomputed from `sale_observation` (PRD §6.5) by the final stage of the EPIC-03 daily scheduled ingestion run (`STORY-03-03-01`), so this handler computes no valuation in the request path and issues no LLM call. Built on the FEATURE-04-01 scaffolding, the handler opens a short-lived Neon connection through the **pooled** `DATABASE_URL` — never the unpooled `DATABASE_URL_UNPOOLED`, which EPIC-02 reserves for DDL and migrations — threads the operator `userId` from the `getUserId()` seam (v1 = the single seeded operator), validates the `window` query parameter and returns HTTP **400** with a named `error` field on a malformed value, and reads official data sources only. Per the PRD §6.6 data partition, `valuation` is **GLOBAL** shared data: the read is scoped by `variation_id` (and optional `grade_id`), never filtered by `userId`.
 
 The `valuation` row carries `id`, `variation_id` (→ `variation(id)`, NOT NULL), `grade_id` (SMALLINT → `grade(id)`, NULL for digital or ungraded), `window_days` (SMALLINT NOT NULL — the set is `90` and `365`), `cost_basis` (TEXT NOT NULL DEFAULT `item_plus_shipping`), `p25` / `median` / `p75`, `price_min` / `price_max` (NUMERIC(12,2)), `sample_size` (INTEGER NOT NULL — drives the confidence gate), `trend_pct` (REAL — versus the prior window), `trend_dir` (SMALLINT — `-1` down / `0` flat / `+1` up), `confidence` (REAL, range `0..1`), `currency`, and `computed_at` (TIMESTAMPTZ NOT NULL DEFAULT now()). The `UNIQUE NULLS NOT DISTINCT (variation_id, grade_id, window_days, cost_basis)` constraint — which **requires PostgreSQL 15+** — keeps each digital (`grade_id` NULL) series unique; the `idx_valuation_variation` index on `valuation (variation_id, grade_id)` backs the read; and the schema rule is absolute: a series **never mixes grades or formats** (format is implied by the variation; grade is NULL for digital).
 
 ## User Story
 
 > As a **Backend Engineer**, I want a 90-day / 1-year price-history + trend endpoint backed by the `valuation` cache, so that the frontend can render the price-history chart and a trend indicator with a visible confidence label.
+
+## API Contract
+
+- **Method and path:** `GET /api/variations/{variation_id}/price-history` (the `variation_id` is the path parameter).
+- **Query parameters:** `window` ∈ {`90`, `365`} (required; a value outside the set returns HTTP **400** `{ "error": "window" }`), and `grade_id` (optional; omitted or empty selects the digital / ungraded `grade_id IS NULL` series). The parameter rules and safe error envelope are governed by the shared validator in [STORY-04-01-03](../FEATURE-04-01/STORY-04-01-03-implement-query-parameter-validation.md). The EPIC-05 price-history chart ([STORY-05-03-02](../../EPIC-05/FEATURE-05-03/STORY-05-03-02-implement-price-history-chart.md)) calls this exact path.
+- **Response** (HTTP **200**):
+
+  ```json
+  {
+    "variation_id": 502,
+    "grade_id": null,
+    "window_days": 90,
+    "cost_basis": "item_plus_shipping",
+    "p25": 88.00,
+    "median": 134.50,
+    "p75": 175.00,
+    "price_min": 60.00,
+    "price_max": 240.00,
+    "sample_size": 23,
+    "trend_pct": 18.0,
+    "trend_dir": 1,
+    "confidence": 0.86,
+    "confidence_label": "confident",
+    "currency": "USD",
+    "computed_at": "2026-05-30T08:00:00Z",
+    "last_updated": "2026-05-30T08:00:00Z"
+  }
+  ```
+
+- **Response fields:** the `valuation` columns `variation_id`, `grade_id` (`null` for the digital / ungraded series), `window_days`, `cost_basis`, `p25`, `median`, `p75`, `price_min`, `price_max`, `sample_size`, `trend_pct`, `trend_dir` (`-1`/`0`/`+1`), `confidence` (`0..1`), `currency`, and `computed_at`, plus a derived `confidence_label` ∈ {`asking_price_estimate`, `low_confidence`, `confident`} (`sample_size = 0` → `asking_price_estimate`; `1`–`4` → `low_confidence`; `≥ 5` → `confident`) and the shared `last_updated` derived field (most recent of `valuation.computed_at`, the newest `sale_observation` date, and `raw_listing.last_seen`, defined in [FEATURE-04-02](../FEATURE-04-02-search-and-detail-endpoints.md)).
+- **Source of the cache:** the `valuation` rows this endpoint reads are written by the EPIC-03 daily scheduled ingestion run (EPIC-03 `STORY-03-03-01` — Create Scheduled Ingestion Workflow), whose final stage recomputes the cache from `sale_observation` for each `(variation_id, grade_id, window_days)`; this handler computes no valuation in the request path.
+- **Errors:** a `window` outside {`90`, `365`} returns HTTP **400** `{ "error": "window" }` before any read; a `variation_id` + `grade_id` + `window` triple that matches no `valuation` row returns HTTP **404** with a named `error` field.
 
 ## Acceptance Criteria
 
@@ -45,7 +77,7 @@ The `valuation` row carries `id`, `variation_id` (→ `variation(id)`, NOT NULL)
 
 - **[FEATURE-04-01 — Backend Foundation & Environment Access](../FEATURE-04-01-backend-foundation-and-environment-access.md):** the API route scaffolding, the provisioned Vercel environment access (per <https://docs.blitzy.com/administration/environments>), the `getUserId()` threading, and the query-parameter validation this endpoint reuses.
 - **[EPIC-02 — Database Platform & Schema](../../EPIC-02-database-platform-and-schema.md):** the `valuation` table on PostgreSQL 15+ (for `UNIQUE NULLS NOT DISTINCT`) reached through the pooled Neon access layer, and the `getUserId()` seam (`STORY-02-03-02`, the seeded operator user).
-- **[EPIC-03 — Data Ingestion Pipeline](../../EPIC-03-data-ingestion-pipeline.md):** the periodic recompute job that writes `valuation` rows from `sale_observation`; this endpoint reads that precomputed cache and never computes in the request path, so it returns no series until the recompute job has run.
+- **[EPIC-03 — Data Ingestion Pipeline](../../EPIC-03-data-ingestion-pipeline.md), specifically `STORY-03-03-01` (Create Scheduled Ingestion Workflow):** the daily scheduled run whose final stage recomputes the `valuation` rows from `sale_observation` for each `(variation_id, grade_id, window_days)`; this endpoint reads that precomputed cache and never computes in the request path, so it returns no series until the recompute stage has run.
 
 ### Downstream (informational — not a build prerequisite of this story)
 

@@ -12,19 +12,54 @@ Built on the FEATURE-04-01 scaffolding, the handler opens a short-lived Neon con
 
 > As a **Backend Engineer**, I want a character search + autocomplete endpoint, so that the frontend can resolve a typed character name (for example `Vader`) to the cards featuring that character.
 
+## API Contract
+
+- **Method and path:** `GET /api/characters/search`
+- **Query parameters:** `q` (required, the non-empty character term; an empty or missing `q` returns HTTP **400** with the safe error envelope `{ "error": "q" }`), `mode` (optional, one of `autocomplete` or `resolve`, default `autocomplete`), and `limit` (optional, `[1, 100]`, caps the `autocomplete` suggestion count). These parameters and the safe error envelope are governed by the shared validator in [STORY-04-01-03](../FEATURE-04-01/STORY-04-01-03-implement-query-parameter-validation.md). The EPIC-05 search input ([STORY-05-02-01](../../EPIC-05/FEATURE-05-02/STORY-05-02-01-implement-search-input-with-autocomplete.md)) calls this exact path.
+- **Autocomplete response** (`mode=autocomplete`, HTTP **200**):
+
+  ```json
+  {
+    "query": "Va",
+    "mode": "autocomplete",
+    "suggestions": [
+      { "character_id": 12, "name": "Darth Vader", "alias_matched": false },
+      { "character_id": 41, "name": "Vaneé", "alias_matched": false }
+    ]
+  }
+  ```
+
+  `suggestions` is ordered by `character.name`; each entry carries `character_id` (BIGINT), `name` (the `character.name`), and `alias_matched` (`true` when the term matched a `character.aliases` entry rather than `character.name`). A `q` of length 1 (below the 2-character minimum) returns `suggestions: []`.
+- **Resolve response** (`mode=resolve`, HTTP **200**):
+
+  ```json
+  {
+    "query": "Darth Vader",
+    "mode": "resolve",
+    "character": { "character_id": 12, "name": "Darth Vader" },
+    "cards": [
+      { "card_id": 880, "set_id": 14, "card_number": "A-OD", "name": "Darth Vader" }
+    ]
+  }
+  ```
+
+  `cards` carries every `card` joined through `card_character` to the resolved `character` (schema Example Query 1), each entry carrying `card_id`, `set_id`, `card_number`, and `name`.
+- **Empty-state shapes** (HTTP **200**, never HTTP 404): a non-empty `q` that matches no `character.name` and no `character.aliases` entry returns `suggestions: []` in autocomplete mode, and `character: null` with `cards: []` in resolve mode.
+- **Error envelope** (HTTP **400**): `{ "error": "q" }` for an empty or missing `q`, returned before any catalog query.
+
 ## Acceptance Criteria
 
-1. **(valid-output — autocomplete)** **Given** known characters whose `name` values share a prefix of length **≥ 2 characters** (for example `Va` → `Vader`, `Vaneé`), **When** the operator calls the endpoint with `q=Va`, **Then** the response is HTTP **200** and the body contains autocomplete suggestions **ordered by character `name`**.
-2. **(valid-output — resolve)** **Given** a `character.name` that exists (for example `Darth Vader`), **When** the endpoint is called with that exact `q`, **Then** the response is HTTP **200** and contains **every `card` joined through `card_character` to that `character`** via the `ch.name ILIKE` join (schema Example Query 1).
+1. **(valid-output — autocomplete)** **Given** known characters whose `name` values share a prefix of length **≥ 2 characters** (for example `Va` → `Vader`, `Vaneé`), **When** the operator calls `GET /api/characters/search?q=Va&mode=autocomplete`, **Then** the response is HTTP **200** and the body's `suggestions` array is **ordered by character `name`**, each entry carrying `character_id`, `name`, and `alias_matched`.
+2. **(valid-output — resolve)** **Given** a `character.name` that exists (for example `Darth Vader`), **When** the endpoint is called with that exact `q` and `mode=resolve`, **Then** the response is HTTP **200**, the body's `character` carries the resolved `character_id` and `name`, and its `cards` array contains **every `card` joined through `card_character` to that `character`** via the `ch.name ILIKE` join (schema Example Query 1), each entry carrying `card_id`, `set_id`, `card_number`, and `name`.
 3. **(input-validation — empty/missing `q`)** **Given** a request whose `q` parameter is empty or missing, **When** the request is processed, **Then** the response is HTTP **400** with an `error` field named `q`, and no catalog query is run.
-4. **(error-handling — unknown character)** **Given** a non-empty `q` that matches no `character.name` and no `character.aliases` entry, **When** the request is processed, **Then** the response is HTTP **200** with an **empty result array** (never HTTP 404).
+4. **(error-handling — unknown character)** **Given** a non-empty `q` that matches no `character.name` and no `character.aliases` entry, **When** the request is processed, **Then** the response is HTTP **200** with `suggestions: []` in autocomplete mode and `character: null` with `cards: []` in resolve mode (never HTTP 404).
 5. **(edge-case — alias match)** **Given** a term that matches only an entry in `character.aliases` (for example `The Child` for Grogu), **When** the endpoint is called, **Then** the response is HTTP **200** and resolves to the aliased `character` and that character's joined cards.
 6. **(edge-case — below the autocomplete minimum)** **Given** a single-character `q` (length 1, below the **2-character** autocomplete minimum), **When** the request is processed, **Then** the response is HTTP **200** with an empty suggestion list and no `error` field.
 
 ## Sub-tasks
 
-- [ ] Implement the GET handler that joins `card` → `card_character` → `character` on `ch.name ILIKE` the term (schema Example Query 1, backed by `idx_cardchar_character`), opening a short-lived connection through the pooled `DATABASE_URL` (@backend-engineer)
-- [ ] Implement the autocomplete branch that returns known character-name suggestions **ordered by `name`** when `q` has length **≥ 2 characters** (@backend-engineer)
+- [ ] Implement the `GET /api/characters/search` handler with the `q`, `mode` (`autocomplete`/`resolve`, default `autocomplete`), and `limit` parameters, joining `card` → `card_character` → `character` on `ch.name ILIKE` the term in resolve mode (schema Example Query 1, backed by `idx_cardchar_character`), opening a short-lived connection through the pooled `DATABASE_URL` (@backend-engineer)
+- [ ] Implement the autocomplete branch that returns the `suggestions` array — each entry carrying `character_id`, `name`, and `alias_matched` — **ordered by `name`** when `q` has length **≥ 2 characters**, and the resolve branch that returns `character` plus the `cards` array (`card_id`, `set_id`, `card_number`, `name`) (@backend-engineer)
 - [ ] Validate `q` so an empty or missing value returns HTTP **400** with an `error` field named `q` and runs no catalog query (@backend-engineer)
 - [ ] Implement alias resolution that matches a term against the `character.aliases` JSONB array (for example `The Child` → Grogu) and resolves to the aliased character (@backend-engineer)
 - [ ] Return an empty suggestion list (HTTP **200**, no `error`) for a `q` of length 1, and an empty result array (HTTP **200**, never 404) for a non-empty term that matches no `name` and no `aliases` entry (@backend-engineer)
@@ -65,11 +100,11 @@ Built on the FEATURE-04-01 scaffolding, the handler opens a short-lived Neon con
 
 ## Definition of Done
 
-- [ ] The endpoint returns autocomplete suggestions ordered by `name` for a `q` of length **≥ 2 characters**.
-- [ ] An exact `character.name` (for example `Darth Vader`) returns every `card` joined through `card_character` to that `character` via the `ch.name ILIKE` join (schema Example Query 1).
+- [ ] The endpoint is `GET /api/characters/search` and returns the autocomplete `suggestions` array (`character_id`, `name`, `alias_matched`) ordered by `name` for a `q` of length **≥ 2 characters** in `mode=autocomplete`.
+- [ ] In `mode=resolve`, an exact `character.name` (for example `Darth Vader`) returns `character` (`character_id`, `name`) plus a `cards` array (`card_id`, `set_id`, `card_number`, `name`) of every `card` joined through `card_character` to that `character` via the `ch.name ILIKE` join (schema Example Query 1).
 - [ ] A term that matches only a `character.aliases` JSONB entry (for example `The Child`) resolves to the aliased `character`.
 - [ ] An empty or missing `q` returns HTTP **400** with an `error` field named `q`, and no catalog query is run.
-- [ ] A non-empty `q` that matches no `name` and no `aliases` entry returns HTTP **200** with an empty result array, never HTTP 404.
+- [ ] A non-empty `q` that matches no `name` and no `aliases` entry returns HTTP **200** with `suggestions: []` in autocomplete mode and `character: null` with `cards: []` in resolve mode, never HTTP 404.
 - [ ] A single-character `q` returns HTTP **200** with an empty suggestion list and no `error` field.
 - [ ] The handler reads the pooled `DATABASE_URL` (never `DATABASE_URL_UNPOOLED`), threads `userId` from the `getUserId()` seam, keeps the catalog reads GLOBAL (not filtered by `userId`), and issues no LLM call in the request path.
 - [ ] No prohibited vague quality term appears in any acceptance-criteria statement; every statement names a measurable pass/fail condition (an HTTP status code, an exact column or error-field name, or the 2-character autocomplete minimum).

@@ -39,7 +39,7 @@ This epic is delivered through three features. Each link is relative to this fil
 
 - **EPIC-01 — Environment & Configuration Foundation:** supplies the Next.js + TypeScript scaffold, the Vercel project, and the secrets baseline the API builds on.
 - **EPIC-02 — Database Platform & Schema:** supplies the pooled Neon access layer and the `getUserId()` seam (`STORY-02-03-02`) that every handler threads; the API reads the catalog tables (`character`, `card`, `card_character`, `variation`, `parallel_type`), the `sale_observation` time series, the `valuation` cache, and the `review_queue` and `counterpart_override` tables this layer exposes.
-- **EPIC-03 — Data Ingestion Pipeline:** supplies the ingested `sale_observation` rows and the `valuation` cache the search, detail, and price-history endpoints read; no endpoint returns live sales data until ingestion has written it.
+- **EPIC-03 — Data Ingestion Pipeline:** supplies the ingested `sale_observation` rows and the `valuation` cache the search, detail, and price-history endpoints read; the `valuation` rows are recomputed from `sale_observation` by the final stage of the daily scheduled ingestion run (`STORY-03-03-01`), one row per `(variation_id, grade_id, window_days)` for `window_days` ∈ { `90`, `365` }. No endpoint returns live sales data until ingestion has written it.
 
 ### Downstream (informational — not a build prerequisite of this epic)
 
@@ -54,7 +54,7 @@ This epic is delivered through three features. Each link is relative to this fil
 - [ ] The character search and autocomplete endpoint returns matching characters drawn from the `character` and `card_character` tables.
 - [ ] The digital | physical two-column results endpoint returns each variation's latest sold price split by `format` (`physical` and `digital`).
 - [ ] The card/variation detail endpoint returns the recent-sales table from `sale_observation` (price, sold date, grade, serial number, source link, and description snippet).
-- [ ] The price-history and trend endpoint reads the `valuation` cache for the 90-day (`window_days = 90`) and 1-year (`window_days = 365`) windows and returns the median, the percent change (`trend_pct`), and the trend direction (`trend_dir`, surfaced as ▲/▼).
+- [ ] The price-history and trend endpoint reads the `valuation` cache (recomputed by the EPIC-03 daily run's final stage, `STORY-03-03-01`) for the 90-day (`window_days = 90`) and 1-year (`window_days = 365`) windows and returns the median, the percent change (`trend_pct`), and the trend direction (`trend_dir`, surfaced as ▲/▼), with no recompute in the request path.
 - [ ] The review-queue list and resolve endpoints and the operator counterpart-override endpoint are implemented against the `review_queue` and `counterpart_override` tables.
 - [ ] Every endpoint reads the pooled `DATABASE_URL`; no endpoint reads the unpooled `DATABASE_URL_UNPOOLED`.
 - [ ] No request handler issues an LLM call (LLM-assisted extraction stays in the EPIC-03 batch jobs), and every external data source is an official API.

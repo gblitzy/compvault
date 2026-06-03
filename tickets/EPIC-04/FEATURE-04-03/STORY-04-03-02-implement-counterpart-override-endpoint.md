@@ -8,6 +8,21 @@ This is the **second of the two** stories in FEATURE-04-03 (Operator Review-Queu
 
 **As an** Operator, **I want** a counterpart-override endpoint, **so that** I can create or edit a manual digital↔physical link where the computed counterpart is wrong or missing.
 
+## API Contract
+
+This story is the **write/edit side** of counterpart links. The **read side** the frontend renders — the detail-page counterpart panel resolving the effective counterpart override-first then computed — is served by the `counterpart` block of [STORY-04-02-03 — Implement Card Detail & Sales Table](../FEATURE-04-02/STORY-04-02-03-implement-card-detail-and-sales-table.md); the rows this endpoint writes are exactly the rows that detail endpoint reads with `source = 'override'`. The EPIC-05 counterpart-override editor ([STORY-05-03-03](../../EPIC-05/FEATURE-05-03/STORY-05-03-03-implement-review-queue-workbench-ui.md)) calls the two routes below.
+
+### Create — `POST /api/operator/counterpart-overrides`
+
+- **Request body:** `{ "link_level": <card|variation>, "physical_ref_id": <BIGINT>, "digital_ref_id": <BIGINT>, "confidence": <REAL?>, "notes": <string?> }`. `link_level` outside `('card', 'variation')` → HTTP **400** `{ "error": "link_level" }`; a missing `physical_ref_id` or `digital_ref_id` → HTTP **400** naming the missing field; a reference id matching no row → HTTP **404**; a reference id of the wrong shape for the `link_level`, or a digital-exclusive side with no physical counterpart, → HTTP **422** with a named `error` field. All 4xx use the shared safe error envelope from [STORY-04-01-03](../FEATURE-04-01/STORY-04-01-03-implement-query-parameter-validation.md).
+- **Response** (HTTP **201**): the created row `{ "id", "link_level", "physical_ref_id", "digital_ref_id", "is_manual": true, "confidence": null, "notes": null, "created_at" }`.
+
+### Edit — `PATCH /api/operator/counterpart-overrides/{id}`
+
+- **Path parameter:** `id` must be a positive BIGINT; a malformed/non-positive `id` → HTTP **400** `{ "error": "id" }` before any database access; an `id` matching no override row → HTTP **404**.
+- **Request body:** any of `{ "physical_ref_id", "digital_ref_id", "notes" }`; any changed reference id re-resolves against `card`/`variation` per the stored `link_level` (same 404 / 422 rules as create).
+- **Response** (HTTP **200**): the updated `counterpart_override` row in the same field shape as the create response.
+
 ## Acceptance Criteria
 
 1. **(valid-output — CREATE at variation level)** **Given** a POST body with `link_level = variation`, an existing `physical_ref_id` resolving to a physical `variation` row, and an existing `digital_ref_id` resolving to a digital `variation` row, **When** the request is processed, **Then** the response is HTTP **201** and the stored `counterpart_override` row has `is_manual = TRUE` and a `link_level`, `physical_ref_id`, and `digital_ref_id` equal to the supplied values.
@@ -17,13 +32,14 @@ This is the **second of the two** stories in FEATURE-04-03 (Operator Review-Queu
 5. **(error-handling — unresolved reference)** **Given** a POST body whose `physical_ref_id` or `digital_ref_id` does not resolve to an existing `card` row (when `link_level = card`) or `variation` row (when `link_level = variation`), **When** the request is processed, **Then** the response is HTTP **404** for an id that matches no row, or HTTP **422** for an id of the wrong format for the `link_level`, with a named error field identifying the unresolved id, and zero rows are inserted.
 6. **(valid-output — EDIT)** **Given** an existing override `id`, **When** the operator PATCHes it with a new `physical_ref_id`, `digital_ref_id`, and/or `notes`, **Then** the response is HTTP **200** and the stored row reflects the updated `physical_ref_id`, `digital_ref_id`, and `notes`; any changed reference id re-resolves against `card`/`variation` per the stored `link_level`.
 7. **(edge-case — digital-only, no physical counterpart)** **Given** a `variation`-level POST whose digital side is a format-exclusive parallel with `parallel_type.format_availability = 'digital'` (for example Gilded) for which no physical `variation` shares its `(card_id, parallel_type_id)`, **When** the request is processed, **Then** the response is HTTP **422** labeled `no physical counterpart` and zero rows are inserted.
+8. **(input-validation — EDIT id)** **Given** a `PATCH /api/operator/counterpart-overrides/{id}` whose `id` is malformed (non-numeric, wrong shape, or non-positive), **When** the request is processed, **Then** the response is HTTP **400** with an `error` field that names `id`, returned **before any database access**; and an `id` that is well-formed but matches no `counterpart_override` row returns HTTP **404** with a named `error` field, with zero rows modified in either case.
 
 ## Sub-tasks
 
 - [ ] Implement the CREATE (POST) handler that inserts a `counterpart_override` row with `is_manual = TRUE` through the pooled `DATABASE_URL` and returns HTTP 201 with the created row (@backend-engineer)
 - [ ] Validate `link_level` against the CHECK set `('card', 'variation')` and require both `physical_ref_id` and `digital_ref_id`, returning HTTP 400 with an `error` field that names the offending field (@backend-engineer)
 - [ ] Resolve each reference id against `card` (for `link_level = card`) or `variation` (for `link_level = variation`), returning HTTP 404 for an id that matches no row and HTTP 422 for an id of the wrong format, with a named error field (@backend-engineer)
-- [ ] Implement the EDIT (PATCH) handler on the override `id` that updates `physical_ref_id`, `digital_ref_id`, and/or `notes`, re-resolves any changed reference id, and returns HTTP 200 (@backend-engineer)
+- [ ] Implement the EDIT (PATCH) handler `PATCH /api/operator/counterpart-overrides/{id}` that validates the path `id` as a positive BIGINT (HTTP 400 `error = id` before any database access), maps an unknown `id` to HTTP 404, updates `physical_ref_id`, `digital_ref_id`, and/or `notes`, re-resolves any changed reference id, and returns HTTP 200 (@backend-engineer)
 - [ ] Define and implement the duplicate-pair rule as HTTP 409: a pre-insert existence check on `(link_level, physical_ref_id, digital_ref_id)` runs inside a single serializable transaction so a repeat triple returns HTTP 409 and inserts no second row (@backend-engineer)
 - [ ] Implement the digital-only rejection: a `variation`-level request whose digital side has `parallel_type.format_availability = 'digital'` with no physical `variation` sharing `(card_id, parallel_type_id)` returns HTTP 422 labeled `no physical counterpart` (@backend-engineer)
 - [ ] Thread the operator `userId` from the `getUserId()` seam, gate the endpoint to the operator role, and read the pooled `DATABASE_URL` only — never the unpooled `DATABASE_URL_UNPOOLED` (@backend-engineer)
@@ -47,7 +63,8 @@ This is the **second of the two** stories in FEATURE-04-03 (Operator Review-Queu
 
 ### Downstream (informational — not a build prerequisite of this story)
 
-- **[EPIC-05 — Frontend User Interface](../../EPIC-05-frontend-user-interface.md):** the counterpart-override editor in the review-queue workbench (`STORY-05-03-03`) consumes this endpoint.
+- **[STORY-04-02-03 — Implement Card Detail & Sales Table](../FEATURE-04-02/STORY-04-02-03-implement-card-detail-and-sales-table.md):** the read side of counterpart links — its `counterpart` block reads the `counterpart_override` rows this endpoint writes and returns them with `source = 'override'`, override-first over the computed match. This story is the write side; that endpoint is the read side the frontend renders.
+- **[EPIC-05 — Frontend User Interface](../../EPIC-05-frontend-user-interface.md):** the counterpart-override editor in the review-queue workbench (`STORY-05-03-03`) consumes this endpoint for writes and the detail endpoint's `counterpart` block for display.
 - **[EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md):** `STORY-06-02-02` integration-tests these API routes against a per-CI Neon branch at an API coverage floor of **≥75%**.
 
 ### Parent feature
@@ -69,7 +86,8 @@ This is the **second of the two** stories in FEATURE-04-03 (Operator Review-Queu
 - [ ] A `physical_ref_id` or `digital_ref_id` that does not resolve against `card`/`variation` per `link_level` returns HTTP 404 or HTTP 422 with a named error field and inserts zero rows.
 - [ ] A `variation`-level request for a digital-only parallel (`parallel_type.format_availability = 'digital'`) with no physical counterpart returns HTTP 422 labeled `no physical counterpart` and inserts zero rows.
 - [ ] The duplicate-pair rule is implemented as documented: a repeat `(link_level, physical_ref_id, digital_ref_id)` triple returns HTTP 409 inside a serializable transaction, and exactly one row exists after concurrent identical POSTs.
-- [ ] An EDIT (PATCH) request on an existing override `id` updates `physical_ref_id`, `digital_ref_id`, and/or `notes`, re-resolves any changed reference id, and returns HTTP 200.
+- [ ] `POST /api/operator/counterpart-overrides` returns HTTP 201 with the created row, and `PATCH /api/operator/counterpart-overrides/{id}` validates the path `id` (HTTP 400 `error = id` before any read, HTTP 404 for an unknown `id`), updates `physical_ref_id`, `digital_ref_id`, and/or `notes`, re-resolves any changed reference id, and returns HTTP 200.
+- [ ] The read side of the counterpart panel is served by the `counterpart` block of `STORY-04-02-03` (which returns these rows with `source = 'override'`); this story owns only the write/edit path, and all 4xx responses use the shared safe error envelope from `STORY-04-01-03`.
 - [ ] The handler reads the pooled `DATABASE_URL` (never the unpooled `DATABASE_URL_UNPOOLED`), threads the operator `userId` from the `getUserId()` seam (v1 = the single seeded operator), gates the action to the operator role, and issues zero LLM calls.
 - [ ] Computed counterparts (the same `card_id` across formats, or the same `card_id` plus `parallel_type_id` across formats) remain the default path; this endpoint writes only manual exceptions, every row carrying `is_manual = TRUE`.
 - [ ] No prohibited vague quality term appears in any acceptance-criteria statement; every such statement names a measurable pass/fail condition.
