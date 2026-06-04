@@ -1,5 +1,7 @@
 # STORY-01-03-02: Configure Vercel Environment Variables
 
+*Parent feature: [FEATURE-01-03 — Secrets & Variable Management](../FEATURE-01-03-secrets-and-variable-management.md) · Parent epic: [EPIC-01 — Environment & Configuration Foundation](../../EPIC-01-environment-and-configuration-foundation.md)*
+
 ## User Story
 **As a** DevOps Engineer, **I want** to configure the Vercel project environment variables across preview and production, **so that** the deployed app and its previews read the correct configuration.
 

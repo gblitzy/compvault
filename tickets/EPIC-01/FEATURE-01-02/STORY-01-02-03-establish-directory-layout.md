@@ -1,5 +1,7 @@
 # STORY-01-02-03: Establish the Directory Layout
 
+*Parent feature: [FEATURE-01-02 — Application Scaffolding & Tooling](../FEATURE-01-02-application-scaffolding-and-tooling.md) · Parent epic: [EPIC-01 — Environment & Configuration Foundation](../../EPIC-01-environment-and-configuration-foundation.md)*
+
 ## User Story
 **As a** Platform Engineer, **I want** to establish the `app/ db/ lib/ jobs/ scripts/ .github/` directory layout, **so that** later epics add code in a consistent, predictable structure.
 

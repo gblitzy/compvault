@@ -1,5 +1,7 @@
 # STORY-01-02-02: Configure ESLint & Strict Typecheck
 
+*Parent feature: [FEATURE-01-02 — Application Scaffolding & Tooling](../FEATURE-01-02-application-scaffolding-and-tooling.md) · Parent epic: [EPIC-01 — Environment & Configuration Foundation](../../EPIC-01-environment-and-configuration-foundation.md)*
+
 ## User Story
 **As a** Platform Engineer, **I want** to configure ESLint and a `tsc --noEmit` strict typecheck baseline, **so that** every change is linted and type-checked before merge.
 

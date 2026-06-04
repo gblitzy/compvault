@@ -1,5 +1,7 @@
 # STORY-01-01-02: Define Secrets & Variables
 
+*Parent feature: [FEATURE-01-01 — Blitzy Environment Provisioning](../FEATURE-01-01-blitzy-environment-provisioning.md) · Parent epic: [EPIC-01 — Environment & Configuration Foundation](../../EPIC-01-environment-and-configuration-foundation.md)*
+
 ## User Story
 **As a** DevOps Engineer, **I want** to define the plaintext variables and encrypted secrets in the Blitzy dashboard, **so that** each environment carries the configuration the application needs without exposing credentials.
 

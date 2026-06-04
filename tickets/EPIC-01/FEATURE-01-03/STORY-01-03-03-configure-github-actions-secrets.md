@@ -1,5 +1,7 @@
 # STORY-01-03-03: Configure GitHub Actions Secrets
 
+*Parent feature: [FEATURE-01-03 — Secrets & Variable Management](../FEATURE-01-03-secrets-and-variable-management.md) · Parent epic: [EPIC-01 — Environment & Configuration Foundation](../../EPIC-01-environment-and-configuration-foundation.md)*
+
 ## User Story
 **As a** DevOps Engineer, **I want** to configure the GitHub Actions encrypted secrets, **so that** CI and the scheduled ingestion read credentials without committing them.
 

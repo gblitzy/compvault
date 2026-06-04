@@ -1,5 +1,7 @@
 # STORY-01-02-01: Initialize the Next.js + TypeScript Project
 
+*Parent feature: [FEATURE-01-02 — Application Scaffolding & Tooling](../FEATURE-01-02-application-scaffolding-and-tooling.md) · Parent epic: [EPIC-01 — Environment & Configuration Foundation](../../EPIC-01-environment-and-configuration-foundation.md)*
+
 ## User Story
 **As a** Platform Engineer, **I want** to initialize a Next.js App Router + TypeScript project at the repository root, **so that** the application has a typed, deployable foundation.
 

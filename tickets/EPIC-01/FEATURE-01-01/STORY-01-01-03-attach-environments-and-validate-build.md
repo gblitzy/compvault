@@ -1,5 +1,7 @@
 # STORY-01-01-03: Attach Environments & Validate Build
 
+*Parent feature: [FEATURE-01-01 — Blitzy Environment Provisioning](../FEATURE-01-01-blitzy-environment-provisioning.md) · Parent epic: [EPIC-01 — Environment & Configuration Foundation](../../EPIC-01-environment-and-configuration-foundation.md)*
+
 ## User Story
 **As a** Platform Engineer, **I want** to attach the environments to the project and validate each with a test build, **so that** the foundation is confirmed working before dependent epics proceed.
 

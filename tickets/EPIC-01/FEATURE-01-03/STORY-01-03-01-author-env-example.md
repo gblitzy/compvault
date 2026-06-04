@@ -1,5 +1,7 @@
 # STORY-01-03-01: Author the .env.example Template
 
+*Parent feature: [FEATURE-01-03 — Secrets & Variable Management](../FEATURE-01-03-secrets-and-variable-management.md) · Parent epic: [EPIC-01 — Environment & Configuration Foundation](../../EPIC-01-environment-and-configuration-foundation.md)*
+
 ## User Story
 **As a** Platform Engineer, **I want** to author a `.env.example` template enumerating every required variable, **so that** contributors and CI know exactly which variables to set without exposing real secrets.
 
