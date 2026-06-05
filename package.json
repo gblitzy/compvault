@@ -1,0 +1,13 @@
+{
+  "name": "compvault",
+  "version": "0.0.0",
+  "private": true,
+  "description": "CompVault — Card Trading Intelligence. Root manifest hosting the Neon serverless database driver established during environment setup.",
+  "engines": {
+    "node": ">=20.20.2"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
+    "ws": "^8.21.0"
+  }
+}
