@@ -29,7 +29,7 @@ Validation runs first and short-circuits invalid input, so it issues no query of
 - [ ] Enforce numeric range bounds and reject non-numeric values where a numeric parameter is expected — for example `limit` ∈ [`1`, `100`] and a four-digit numeric `year` (@api-engineer)
 - [ ] Implement the unknown/extra-parameter rule deterministically — reject any undeclared parameter with **HTTP 400** and an `error` field naming it, and do not forward it to the query (@api-engineer)
 - [ ] Guarantee validation runs **before any database access** — no query is issued on invalid input, and the validator short-circuits the request (@backend-engineer)
-- [ ] Author API integration tests against a per-CI Neon branch covering malformed, out-of-range, empty/missing, wrong-type, unknown-parameter, and valid pass-through cases (@qa-engineer)
+- [ ] Author API integration tests against the `dev-qa` Neon branch covering malformed, out-of-range, empty/missing, wrong-type, unknown-parameter, and valid pass-through cases (@qa-engineer)
 - [ ] Confirm the validation path makes no LLM call and that downstream handlers read only the pooled `DATABASE_URL` (never `DATABASE_URL_UNPOOLED`) and thread `userId` from `getUserId()` (@tech-lead)
 
 ## Edge Cases
@@ -51,7 +51,7 @@ Validation runs first and short-circuits invalid input, so it issues no query of
 
 - **[FEATURE-04-02 — Search & Detail Endpoints](../FEATURE-04-02-search-and-detail-endpoints.md):** the character-search, two-column results, card-detail, and price-history endpoints reuse this validation contract for their combinable filters.
 - **[FEATURE-04-03 — Operator Review-Queue API](../FEATURE-04-03-operator-review-queue-api.md):** the review-queue and counterpart-override endpoints reuse this validation contract for their query parameters.
-- **[EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md):** `STORY-06-02-02` integration-tests these API routes against a per-CI Neon branch at an API coverage floor of **≥75%**.
+- **[EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md):** `STORY-06-02-02` integration-tests these API routes against the `dev-qa` Neon branch at an API coverage floor of **≥75%**.
 
 ### Parent feature
 
@@ -77,4 +77,4 @@ Validation runs first and short-circuits invalid input, so it issues no query of
 - [ ] Validation runs **before any database access**, holds no shared mutable state, and yields an independent, deterministic outcome for each concurrent request.
 - [ ] Downstream handlers read the pooled `DATABASE_URL` (never `DATABASE_URL_UNPOOLED`), thread `userId` from `getUserId()`, and make no LLM call in the request path.
 - [ ] No prohibited vague quality term appears in any acceptance-criteria statement; every statement names a measurable pass/fail condition (an exact HTTP status, the `error` field name, an exact parameter name, a min/max bound, an allowed-value set, or "before any database access").
-- [ ] **Testing:** API integration tests against a per-CI Neon branch pass with a ≥75% coverage target.
+- [ ] **Testing:** API integration tests against the `dev-qa` Neon branch pass with a ≥75% coverage target.
