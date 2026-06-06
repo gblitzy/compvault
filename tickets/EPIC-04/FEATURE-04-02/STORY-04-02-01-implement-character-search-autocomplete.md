@@ -64,7 +64,7 @@ Built on the FEATURE-04-01 scaffolding, the handler opens a short-lived Neon con
 - [ ] Implement alias resolution that matches a term against the `character.aliases` JSONB array (for example `The Child` → Grogu) and resolves to the aliased character (@backend-engineer)
 - [ ] Return an empty suggestion list (HTTP **200**, no `error`) for a `q` of length 1, and an empty result array (HTTP **200**, never 404) for a non-empty term that matches no `name` and no `aliases` entry (@backend-engineer)
 - [ ] Thread the operator `userId` from the `getUserId()` seam and keep the catalog reads (`character`, `card`, `card_character`) GLOBAL — scoped by the search term, never filtered by `userId` (@backend-engineer)
-- [ ] Author API integration tests against a per-CI Neon branch covering autocomplete (`q=Va`), resolve (exact `name`), empty-`q` HTTP 400, unknown-character empty array, and alias-only resolution (@qa-engineer)
+- [ ] Author API integration tests against the `dev-qa` Neon branch covering autocomplete (`q=Va`), resolve (exact `name`), empty-`q` HTTP 400, unknown-character empty array, and alias-only resolution (@qa-engineer)
 - [ ] Confirm the handler sources data through official APIs only and issues zero LLM calls in the request path (@tech-lead)
 
 ## Edge Cases
@@ -85,7 +85,7 @@ Built on the FEATURE-04-01 scaffolding, the handler opens a short-lived Neon con
 ### Downstream (informational — not a build prerequisite of this story)
 
 - **[EPIC-05 — Frontend User Interface](../../EPIC-05-frontend-user-interface.md):** the search input with autocomplete (`STORY-05-02-01`) consumes this endpoint.
-- **[EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md):** `STORY-06-02-02` integration-tests these API routes against a per-CI Neon branch at an API coverage floor of **≥75%**.
+- **[EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md):** `STORY-06-02-02` integration-tests these API routes against the `dev-qa` Neon branch at an API coverage floor of **≥75%**.
 
 ### Parent feature
 
@@ -108,4 +108,4 @@ Built on the FEATURE-04-01 scaffolding, the handler opens a short-lived Neon con
 - [ ] A single-character `q` returns HTTP **200** with an empty suggestion list and no `error` field.
 - [ ] The handler reads the pooled `DATABASE_URL` (never `DATABASE_URL_UNPOOLED`), threads `userId` from the `getUserId()` seam, keeps the catalog reads GLOBAL (not filtered by `userId`), and issues no LLM call in the request path.
 - [ ] No prohibited vague quality term appears in any acceptance-criteria statement; every statement names a measurable pass/fail condition (an HTTP status code, an exact column or error-field name, or the 2-character autocomplete minimum).
-- [ ] **Testing:** API integration tests against a per-CI Neon branch pass with a ≥75% coverage target.
+- [ ] **Testing:** API integration tests against the `dev-qa` Neon branch pass with a ≥75% coverage target.
