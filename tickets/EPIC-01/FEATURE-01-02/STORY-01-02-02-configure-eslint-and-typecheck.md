@@ -6,7 +6,7 @@
 **As a** Platform Engineer, **I want** to configure ESLint and a `tsc --noEmit` strict typecheck baseline, **so that** every change is linted and type-checked before merge.
 
 ## Environment Access & Configuration
-This story builds within the managed environments provisioned by [FEATURE-01-01 — Blitzy Environment Provisioning](../FEATURE-01-01-blitzy-environment-provisioning.md), documented per the canonical reference: <https://docs.blitzy.com/administration/environments>.
+This story builds within the single Blitzy environment attached by [FEATURE-01-01 — Blitzy Environment Provisioning](../FEATURE-01-01-blitzy-environment-provisioning.md), documented per the canonical reference: <https://docs.blitzy.com/administration/environments>.
 
 - **Toolchain floor:** Node `>=20.20.2` for the application runtime (from the root `package.json` `engines.node`); the Apify actor keeps its own `>=18` floor (from `apify/package.json`; the Apify container image is Node 20).
 - **Target:** the linting and typecheck commands run on Node `>=20.20.2` and are invoked by the EPIC-06 CI pipeline on every pull request.

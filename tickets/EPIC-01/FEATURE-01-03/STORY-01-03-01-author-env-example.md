@@ -8,7 +8,7 @@
 ## Environment Access & Configuration
 This story realizes part of EPIC-01's mandatory per-epic environment-access obligation. Follow the canonical reference: <https://docs.blitzy.com/administration/environments>.
 
-- **Platform:** the `.env.example` file authored here is the committed template that documents the variable set later configured on **Vercel** (in [STORY-01-03-02](STORY-01-03-02-configure-vercel-env-vars.md)) and **GitHub Actions** (in [STORY-01-03-03](STORY-01-03-03-configure-github-actions-secrets.md)). the single Blitzy environment holds the source-of-truth configuration that those stories mirror to Vercel and GitHub.
+- **Platform:** the `.env.example` file authored here is the committed template that documents the variable set later configured on **Vercel** (in [STORY-01-03-02](STORY-01-03-02-configure-vercel-env-vars.md)) and **GitHub Actions** (in [STORY-01-03-03](STORY-01-03-03-configure-github-actions-secrets.md)). The single Blitzy environment holds the source-of-truth configuration that those stories mirror to Vercel and GitHub.
 - **Doc essence applied here:** non-sensitive values are recorded as plaintext variables and sensitive credentials as encrypted secrets; `.env.example` records variable **names** and **placeholder** values only and never a live credential. The real `.env` file is git-ignored and never committed (PRD §7.6.3: "Secrets live in GitHub Actions secrets, never committed.").
 - **Runtime floor:** Node `>=20.20.2` for the application runtime (from the root `package.json` `engines.node`); the Apify actor keeps its own `>=18` floor (from `apify/package.json`; the Apify container image is Node 20).
 

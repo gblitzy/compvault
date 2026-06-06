@@ -6,7 +6,7 @@
 **As a** Platform Engineer, **I want** to establish the `app/ db/ lib/ jobs/ scripts/ .github/` directory layout, **so that** later epics add code in a consistent, predictable structure.
 
 ## Environment Access & Configuration
-This story builds within the managed environments provisioned by [FEATURE-01-01 — Blitzy Environment Provisioning](../FEATURE-01-01-blitzy-environment-provisioning.md), documented per the canonical reference: <https://docs.blitzy.com/administration/environments>.
+This story builds within the single Blitzy environment attached by [FEATURE-01-01 — Blitzy Environment Provisioning](../FEATURE-01-01-blitzy-environment-provisioning.md), documented per the canonical reference: <https://docs.blitzy.com/administration/environments>.
 
 - **Toolchain floor:** Node `>=20.20.2` for the application runtime (from the root `package.json` `engines.node`); the Apify actor keeps its own `>=18` floor (from `apify/package.json`; the Apify container image is Node 20).
 - **Layout authority:** the six top-level directories mirror the repository scaffold in PRD §7.6.1 for the single TypeScript Next.js (App Router) repo.

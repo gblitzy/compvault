@@ -49,7 +49,7 @@ This epic is delivered through three features. Each link is relative to this fil
 
 ### Upstream (must be complete first)
 
-- **EPIC-01 — Environment & Configuration Foundation:** supplies the Blitzy environments, the Next.js + TypeScript scaffold, and the secrets baseline into which the pooled `DATABASE_URL` and the unpooled `DATABASE_URL_UNPOOLED` are stored.
+- **EPIC-01 — Environment & Configuration Foundation:** supplies the single Blitzy environment, the Next.js + TypeScript scaffold, and the secrets baseline into which the pooled `DATABASE_URL` and the unpooled `DATABASE_URL_UNPOOLED` are stored.
 
 ### Downstream (informational — not a build prerequisite of this epic)
 

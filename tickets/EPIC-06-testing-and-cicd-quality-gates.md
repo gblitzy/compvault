@@ -31,7 +31,7 @@ This shared branch depends on EPIC-02's branching topology; the branching storie
 
 ### Step-by-step configuration (complete before suites run)
 
-1. Create the Blitzy environments and store the test `DATABASE_URL` plus the CI credentials as encrypted secrets per <https://docs.blitzy.com/administration/environments>.
+1. Configure the single Blitzy environment and store the test `DATABASE_URL` plus the CI credentials as encrypted secrets per <https://docs.blitzy.com/administration/environments>.
 2. Grant the CI workflow a Neon API key with access to the `production` (protected) and `dev-qa` branches.
 3. Confirm the GitHub Actions runner pins Node `>=20.20.2` for the TypeScript application; the Apify actor's own floor is Node `>=18`.
 4. Confirm the Vitest harness reads the injected test `DATABASE_URL` for the integration suite.
@@ -49,7 +49,7 @@ This epic is delivered through three features. Each link is relative to this fil
 
 ### Upstream (must be complete first)
 
-- **EPIC-01 — Environment & Configuration Foundation:** supplies the Blitzy environments, the Next.js + TypeScript scaffold, and the secrets baseline that the harness and the pipeline consume.
+- **EPIC-01 — Environment & Configuration Foundation:** supplies the single Blitzy environment, the Next.js + TypeScript scaffold, and the secrets baseline that the harness and the pipeline consume.
 - **EPIC-02 — Database Platform & Schema:** supplies the Neon branching topology. The branching stories (`STORY-02-01-*`) are a hard prerequisite of the shared `dev-qa` Neon branch story (`STORY-06-01-03`); no integration test runs until the `dev-qa` branch is reachable and migrated.
 
 ### Validates (informational — not a build prerequisite of this epic)

@@ -6,7 +6,7 @@
 **As a** Platform Engineer, **I want** to initialize a Next.js App Router + TypeScript project at the repository root, **so that** the application has a typed, deployable foundation.
 
 ## Environment Access & Configuration
-This story builds within the managed environments provisioned by [FEATURE-01-01 — Blitzy Environment Provisioning](../FEATURE-01-01-blitzy-environment-provisioning.md), documented per the canonical reference: <https://docs.blitzy.com/administration/environments>.
+This story builds within the single Blitzy environment attached by [FEATURE-01-01 — Blitzy Environment Provisioning](../FEATURE-01-01-blitzy-environment-provisioning.md), documented per the canonical reference: <https://docs.blitzy.com/administration/environments>.
 
 - **Toolchain floor:** Node `>=20.20.2` for the application runtime (from the root `package.json` `engines.node`); the Apify actor keeps its own `>=18` floor (from `apify/package.json`; the Apify container image is Node 20).
 - **Target:** the application is a Next.js App Router project deployed on Vercel (stateless serverless request/response).
@@ -29,7 +29,7 @@ This story builds within the managed environments provisioned by [FEATURE-01-01 
 7. **(Edge case — coexistence)** **Given** the existing `apify/` and `docs/` directories, **when** the project is initialized at the repository root, **then** both directories are unchanged and are excluded from the Next.js build.
 
 ## Sub-Tasks
-- [ ] Confirm the single Blitzy environment from FEATURE-01-01 are attached and validated. `@platform-engineer`
+- [ ] Confirm the single Blitzy environment from FEATURE-01-01 is attached and validated. `@platform-engineer`
 - [ ] Initialize the Next.js App Router + TypeScript project at the repository root. `@platform-engineer`
 - [ ] Set `strict: true` in `tsconfig.json` and pin `engines.node` to `>=20.20.2` in `package.json`. `@platform-engineer`
 - [ ] Confirm the existing `README.md`, `apify/`, and `docs/` paths are preserved and excluded from the build. `@platform-engineer`
@@ -43,7 +43,7 @@ This story builds within the managed environments provisioned by [FEATURE-01-01 
 - **Concurrent:** two initialization attempts run against the repository root at the same time — one writes the manifest and the other halts on the already-present manifest.
 
 ## Dependencies
-- **Upstream:** [FEATURE-01-01 — Blitzy Environment Provisioning](../FEATURE-01-01-blitzy-environment-provisioning.md) (the environments the project builds and runs within).
+- **Upstream:** [FEATURE-01-01 — Blitzy Environment Provisioning](../FEATURE-01-01-blitzy-environment-provisioning.md) (the single environment the project builds and runs within).
 - **Downstream (informational):** [STORY-01-02-02](STORY-01-02-02-configure-eslint-and-typecheck.md) and [STORY-01-02-03](STORY-01-02-03-establish-directory-layout.md) require the initialized project. Parent feature: [FEATURE-01-02](../FEATURE-01-02-application-scaffolding-and-tooling.md). Parent epic: [EPIC-01](../../EPIC-01-environment-and-configuration-foundation.md).
 
 ## Story Estimation Guidance

@@ -26,12 +26,15 @@ This epic's `.env.example` enumerates the variable set for the whole backlog. Th
 
 | Variable | Role | Status |
 |----------|------|--------|
+| `NODE_ENV` | Runtime mode flag stored as a **plaintext** variable (non-sensitive); set to `production` for deployed builds | Active (MVP) |
 | `DATABASE_URL` | Pooled Neon connection read at runtime by the application | Active (MVP) |
 | `DATABASE_URL_UNPOOLED` | Unpooled Neon connection used for DDL and migrations | Active (MVP) |
 | `APIFY_TOKEN` | Apify Platform token authorizing actor execution for ingestion | Active (MVP) |
 | `LLM_API_KEY` | Key for the batch LLM-assisted extraction parser (batch jobs only, never in a request handler) | Active (MVP) |
 | `EBAY_CLIENT_ID` / `EBAY_CLIENT_SECRET` | eBay Browse / Marketplace-Insights API credentials | Deferred — blocked on approved access |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Stripe billing credentials | Phase 3 — out of MVP scope; documented placeholder only |
+
+`NODE_ENV` is a **plaintext** runtime-mode variable (non-sensitive) and is separate from the eight `.env.example` secret names listed above. The four active secrets — `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `APIFY_TOKEN`, and `LLM_API_KEY` — must be present (non-empty) for a build to succeed; a missing required active secret halts the build with a non-zero exit code that names the missing key. The deferred eBay placeholders and the Phase-3 Stripe placeholders are added as empty entries and activated later.
 
 ### Step-by-step configuration (complete before dependent epics proceed)
 
@@ -59,11 +62,11 @@ This epic is delivered through three features. Each link is relative to this fil
 
 ### Downstream (informational — not a build prerequisite of this epic)
 
-- **EPIC-02 — Database Platform & Schema:** consumes the Blitzy environments and the secrets baseline into which the pooled `DATABASE_URL` and the unpooled `DATABASE_URL_UNPOOLED` are stored, and builds on the scaffold's `db/` directory.
+- **EPIC-02 — Database Platform & Schema:** consumes the single Blitzy environment and the secrets baseline into which the pooled `DATABASE_URL` and the unpooled `DATABASE_URL_UNPOOLED` are stored, and builds on the scaffold's `db/` directory.
 - **EPIC-03 — Data Ingestion Pipeline:** consumes the `APIFY_TOKEN` and `LLM_API_KEY` secrets and the GitHub Actions environment this epic configures, and builds on the scaffold's `jobs/` directory.
 - **EPIC-04 — Backend Application & API:** builds on the Next.js App Router scaffold and the Vercel project this epic provisions, reading the pooled `DATABASE_URL` exposed here.
 - **EPIC-05 — Frontend User Interface:** builds on the same Next.js scaffold and the Vercel Production and Preview (= dev/qa) scopes this epic provisions.
-- **EPIC-06 — Testing & CI/CD Quality Gates:** consumes the GitHub Actions encrypted secrets and the scaffold this epic delivers; its pipeline runs against the environments provisioned here.
+- **EPIC-06 — Testing & CI/CD Quality Gates:** consumes the GitHub Actions encrypted secrets and the scaffold this epic delivers; its pipeline runs against the single Blitzy environment configured here.
 
 ## Definition of Done
 

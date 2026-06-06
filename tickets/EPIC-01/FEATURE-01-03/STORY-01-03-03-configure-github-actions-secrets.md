@@ -8,7 +8,7 @@
 ## Environment Access & Configuration
 This story realizes part of EPIC-01's mandatory per-epic environment-access obligation. Follow the canonical reference: <https://docs.blitzy.com/administration/environments>.
 
-- **Platform:** GitHub Actions — encrypted repository secrets consumed by the CI workflow and the scheduled ingestion workflow via `${{ secrets.NAME }}`. the single Blitzy environment holds the source-of-truth configuration; this story mirrors the values to GitHub Actions encrypted secrets.
+- **Platform:** GitHub Actions — encrypted repository secrets consumed by the CI workflow and the scheduled ingestion workflow via `${{ secrets.NAME }}`. The single Blitzy environment holds the source-of-truth configuration; this story mirrors the values to GitHub Actions encrypted secrets.
 - **Doc essence applied here:** sensitive credentials are stored as encrypted secrets and stay out of logs. Per PRD §7.6.3, "Secrets live in GitHub Actions secrets, never committed," so no secret value is placed in a tracked file.
 - **Secret set mirrored:** the four active variables from [STORY-01-03-01](STORY-01-03-01-author-env-example.md) — `DATABASE_URL` (pooled, runtime), `DATABASE_URL_UNPOOLED` (unpooled, DDL/migrations), `APIFY_TOKEN`, `LLM_API_KEY`. The deferred `EBAY_CLIENT_ID`/`EBAY_CLIENT_SECRET` and the Phase-3 `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET` are not created as active CI secrets.
 

@@ -44,7 +44,7 @@ This epic is delivered through three features. Each link is relative to this fil
 
 ### Upstream (must be complete first)
 
-- **EPIC-01 — Environment & Configuration Foundation:** supplies the Blitzy environments, the secrets baseline (`APIFY_TOKEN`, `LLM_API_KEY`, `DATABASE_URL`), and the GitHub Actions secrets the `ingest.yml` workflow consumes.
+- **EPIC-01 — Environment & Configuration Foundation:** supplies the single Blitzy environment, the secrets baseline (`APIFY_TOKEN`, `LLM_API_KEY`, `DATABASE_URL`), and the GitHub Actions secrets the `ingest.yml` workflow consumes.
 - **EPIC-02 — Database Platform & Schema:** supplies the Neon two-environment branching topology (the `production` and `dev-qa` branches) and the Drizzle schema and access layer; every data-write story in this epic requires the database, writing to `raw_listing`, `extraction`, `sale_observation`, `valuation`, `ingestion_run`, and `review_queue` through the pooled `DATABASE_URL`. The branching stories (`STORY-02-01-*`) are a hard prerequisite of every ingestion write.
 
 ### Downstream (informational — not a build prerequisite of this epic)

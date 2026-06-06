@@ -35,25 +35,25 @@ The platform accessed here is **Blitzy**: this feature manually configures the *
 
 This feature is delivered through three stories. Each link is relative to this file inside the `EPIC-01/` directory.
 
-1. **[STORY-01-01-01 — Create the Blitzy Environments](FEATURE-01-01/STORY-01-01-01-create-blitzy-environments.md)** — manually configure the single Blitzy environment per <https://docs.blitzy.com/administration/environments> (informational only), with its copy-paste build (`npm install` → `npm run build`) and run (`npm run start`) instructions matching the Next.js App Router on Vercel stack and the Node `>=20.20.2` application floor (the Apify actor keeps its own `>=18`).
+1. **[STORY-01-01-01 — Configure the Blitzy Environment](FEATURE-01-01/STORY-01-01-01-create-blitzy-environments.md)** — manually configure the single Blitzy environment per <https://docs.blitzy.com/administration/environments> (informational only), with its copy-paste build (`npm install` → `npm run build`) and run (`npm run start`) instructions matching the Next.js App Router on Vercel stack and the Node `>=20.20.2` application floor (the Apify actor keeps its own `>=18`).
 2. **[STORY-01-01-02 — Define Secrets & Variables](FEATURE-01-01/STORY-01-01-02-define-secrets-and-variables.md)** — define the plaintext variables (non-sensitive configuration) and the encrypted secrets (sensitive credentials, encrypted at rest) for the single environment in the Blitzy dashboard.
-3. **[STORY-01-01-03 — Attach Environments & Validate Build](FEATURE-01-01/STORY-01-01-03-attach-environments-and-validate-build.md)** — attach the single environment to the project and validate it with a test build that exits 0.
+3. **[STORY-01-01-03 — Attach Environment & Validate Build](FEATURE-01-01/STORY-01-01-03-attach-environments-and-validate-build.md)** — attach the single environment to the project and validate it with a test build that exits 0.
 
 ## Dependencies
 
 ### Upstream (must be complete first)
 
-- **None.** EPIC-01 is the root of the dependency graph and FEATURE-01-01 is its first feature; it has no upstream feature or epic and provisions the environments every later feature and epic builds on.
+- **None.** EPIC-01 is the root of the dependency graph and FEATURE-01-01 is its first feature; it has no upstream feature or epic and configures the single Blitzy environment every later feature and epic builds on.
 
 ### Downstream (informational — not a build prerequisite of this feature)
 
-- **[FEATURE-01-02 — Application Scaffolding & Tooling](FEATURE-01-02-application-scaffolding-and-tooling.md):** initializes the Next.js App Router + TypeScript scaffold within these provisioned environments.
+- **[FEATURE-01-02 — Application Scaffolding & Tooling](FEATURE-01-02-application-scaffolding-and-tooling.md):** initializes the Next.js App Router + TypeScript scaffold within the single Blitzy environment.
 - **[FEATURE-01-03 — Secrets & Variable Management](FEATURE-01-03-secrets-and-variable-management.md):** authors `.env.example` and configures the Vercel and GitHub Actions secrets on top of this environment baseline.
-- **EPIC-02 — Database Platform & Schema:** provisions Neon and its branching topology within these environments.
-- **EPIC-03 — Data Ingestion Pipeline:** runs the Apify-primary ingestion against these environments.
-- **EPIC-04 — Backend Application & API:** serves the Next.js API from these environments.
-- **EPIC-05 — Frontend User Interface:** renders the UI from these environments.
-- **EPIC-06 — Testing & CI/CD Quality Gates:** runs its pipeline against these environments.
+- **EPIC-02 — Database Platform & Schema:** provisions Neon and its branching topology within the single Blitzy environment.
+- **EPIC-03 — Data Ingestion Pipeline:** runs the Apify-primary ingestion against the single Blitzy environment.
+- **EPIC-04 — Backend Application & API:** serves the Next.js API from the single Blitzy environment.
+- **EPIC-05 — Frontend User Interface:** renders the UI from the single Blitzy environment.
+- **EPIC-06 — Testing & CI/CD Quality Gates:** runs its pipeline against the single Blitzy environment.
 
 ## Definition of Done
 
