@@ -8,7 +8,7 @@ Feature: [FEATURE-02-03](../FEATURE-02-03-data-access-layer-and-seed-data.md) ·
 
 ## Connection & Environment Note
 
-The pooled `DATABASE_URL` secret is provisioned per [FEATURE-02-01 — Neon Project & Branching Topology](../FEATURE-02-01-neon-project-and-branching-topology.md) (documented per <https://docs.blitzy.com/administration/environments>; the connection string itself is detailed in [STORY-02-01-04](../FEATURE-02-01/STORY-02-01-04-document-pooled-and-unpooled-connections.md)), so this story does not duplicate that per-epic environment-access feature. The client (`db/client.ts`) uses the `@neondatabase/serverless` + `ws` driver stack on Node `>=18` and reads the pooled `DATABASE_URL` at runtime — never the unpooled `DATABASE_URL_UNPOOLED`, which is reserved for DDL and migrations under `FEATURE-02-02`; the command `npm install @neondatabase/serverless ws` is named here as content, not executed by this documentation ticket.
+The pooled `DATABASE_URL` secret is provisioned per [FEATURE-02-01 — Neon Project & Branching Topology](../FEATURE-02-01-neon-project-and-branching-topology.md) (documented per <https://docs.blitzy.com/administration/environments>; the connection string itself is detailed in [STORY-02-01-04](../FEATURE-02-01/STORY-02-01-04-document-pooled-and-unpooled-connections.md)), so this story does not duplicate that per-epic environment-access feature. The client (`db/client.ts`) uses the `@neondatabase/serverless` + `ws` driver stack on Node `>=20.20.2` (the application engine floor from the root `package.json`; the earlier `>=18` originated from the Apify actor's `apify/package.json`) and reads the pooled `DATABASE_URL` at runtime — never the unpooled `DATABASE_URL_UNPOOLED`, which is reserved for DDL and migrations under `FEATURE-02-02`; the command `npm install @neondatabase/serverless ws` is named here as content, not executed by this documentation ticket.
 
 ## Acceptance Criteria
 
@@ -55,12 +55,12 @@ The pooled `DATABASE_URL` secret is provisioned per [FEATURE-02-01 — Neon Proj
 
 - **Effort: Low–Medium** — one shared module that reads one secret, exports one pooled client, and adds a fail-fast guard plus a bounded-retry path; no schema change and no new platform access.
 - **Complexity: Low** — a single connection-pool setup over a fixed driver stack (`@neondatabase/serverless` + `ws`), one configuration guard, and one bounded-retry rule, with no business logic in the client.
-- **Uncertainty: Low** — the driver stack, the pooled `DATABASE_URL`, and the Node `>=18` floor are fixed inputs, and a `SELECT 1` health query is a known check, so the target is defined.
+- **Uncertainty: Low** — the driver stack, the pooled `DATABASE_URL`, and the Node `>=20.20.2` floor are fixed inputs, and a `SELECT 1` health query is a known check, so the target is defined.
 - **Fibonacci Story Points: 3** — Low–Medium effort with Low complexity and Low uncertainty place the estimate at 3; the fail-fast guard, the bounded-retry path, and the pooled-versus-unpooled discipline hold it above a 2. Points measure relative size, not a duration.
 
 ## Definition of Done
 
-- [ ] `db/client.ts` is a single shared module that reads the pooled `DATABASE_URL` using `@neondatabase/serverless` + `ws` on Node `>=18` and exports one reusable pooled client.
+- [ ] `db/client.ts` is a single shared module that reads the pooled `DATABASE_URL` using `@neondatabase/serverless` + `ws` on Node `>=20.20.2` and exports one reusable pooled client.
 - [ ] A missing or empty `DATABASE_URL` throws a named configuration error before any query is issued and opens 0 connections.
 - [ ] A `SELECT 1` health query through the client returns 1 row with 0 connection errors.
 - [ ] The `ws` WebSocket dependency the `@neondatabase/serverless` driver requires is wired, and the client reads the pooled `DATABASE_URL` with 0 references to the unpooled `DATABASE_URL_UNPOOLED`.
