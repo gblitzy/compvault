@@ -8,20 +8,20 @@ EPIC-05 delivers the CompVault web interface: a character-first search experienc
 
 All environment provisioning for this epic follows the canonical Blitzy environments reference: <https://docs.blitzy.com/administration/environments>. Non-sensitive values are stored as plaintext environment variables and credentials are stored as encrypted secrets, after which the environment is attached to the project. This step-by-step configuration is completed in full **before** any UI implementation work begins.
 
-The frontend is a Next.js App Router application deployed on Vercel. The Vercel GitHub integration produces one preview deployment per pull request and the production deployment on `main`, so each pull request renders the UI against a live, shareable URL before merge. Every screen reads from the EPIC-04 endpoints (character search and autocomplete, the two-column results, card/variation detail, the 90-day/1-year price-history and trend, and the review-queue), so those endpoints — or their published contracts — are reachable from each Vercel environment before the screens are wired to live data.
+The frontend is a Next.js App Router application deployed on Vercel. Vercel exposes exactly two deployed environments via its built-in scopes — the **Production** scope (deploys from `main`, pointed at the Neon `production` branch) and the **Preview** scope (= dev/qa), which applies to all non-production branches and pull requests and is pointed at the Neon `dev-qa` branch — so each pull request renders the UI against a live, shareable Preview URL before merge. (The Development scope is local-only via `vercel env pull` and is not a third deployed environment.) Every screen reads from the EPIC-04 endpoints (character search and autocomplete, the two-column results, card/variation detail, the 90-day/1-year price-history and trend, and the review-queue), so those endpoints — or their published contracts — are reachable from each Vercel environment before the screens are wired to live data.
 
 ### Platforms and access required
 
 | Platform | Access required | Purpose in EPIC-05 |
 |----------|-----------------|--------------------|
-| Blitzy | Dev/Staging/Prod environments; plaintext variables and encrypted secrets | Store the frontend build and runtime variables (including the EPIC-04 API base URL) per the Blitzy environments reference |
-| Vercel | Project access; per-scope environment variables; per-PR preview deployments | Build and host the Next.js App Router frontend; expose one preview deployment per pull request and the production deployment on `main` |
+| Blitzy | single environment (manual build/run + hand-entered secrets); plaintext variables and encrypted secrets | Store the frontend build and runtime variables (including the EPIC-04 API base URL) in the single Blitzy environment per the Blitzy environments reference |
+| Vercel | Project access; per-scope environment variables; Production and Preview (= dev/qa) scopes | Build and host the Next.js App Router frontend; expose the Preview (dev/qa) scope for all non-production branches/PRs (Neon `dev-qa`) and the Production scope for `main` (Neon `production`) |
 
 ### Step-by-step configuration (complete before UI work begins)
 
-1. Create the Blitzy environments and store the frontend variables — the EPIC-04 API base URL and any public client configuration — as plaintext, with credentials stored as encrypted secrets, per <https://docs.blitzy.com/administration/environments>.
-2. Connect the repository to Vercel and enable the GitHub integration so each pull request produces a preview deployment and `main` produces the production deployment.
-3. Set the Vercel project environment variables for the Preview and Production scopes so the frontend resolves the EPIC-04 endpoint base URL in each scope.
+1. Configure the single Blitzy environment and store the frontend variables — the EPIC-04 API base URL and any public client configuration — as plaintext, with credentials stored as encrypted secrets, per <https://docs.blitzy.com/administration/environments>.
+2. Connect the repository to Vercel and enable the GitHub integration so all non-production branches/PRs resolve the **Preview** (dev/qa) scope and `main` resolves the **Production** scope.
+3. Set the Vercel project environment variables for the Preview and Production scopes (Preview = dev/qa, pointed at Neon `dev-qa`; Production pointed at Neon `production`) so the frontend resolves the EPIC-04 endpoint base URL in each scope.
 4. Confirm the EPIC-04 read and review-queue endpoints (or their published contracts) respond from the Preview environment before any screen is wired to live data.
 5. Validate the wiring with a minimal page that renders on a Vercel preview URL, confirming the environment is provisioned before the first UI screen is authored.
 
@@ -29,7 +29,7 @@ The frontend is a Next.js App Router application deployed on Vercel. The Vercel 
 
 This epic is delivered through three features. Each link is relative to this file inside the `EPIC-05/` directory.
 
-1. **[FEATURE-05-01 — Frontend Foundation & Environment Access](EPIC-05/FEATURE-05-01-frontend-foundation-and-environment-access.md)** — complete the Vercel preview-deployment and environment access above, then implement the application layout/shell (the shared page frame, the navigation, and the search entry point). This feature carries two stories.
+1. **[FEATURE-05-01 — Frontend Foundation & Environment Access](EPIC-05/FEATURE-05-01-frontend-foundation-and-environment-access.md)** — complete the Vercel two-scope (Production + Preview = dev/qa) and environment access above, then implement the application layout/shell (the shared page frame, the navigation, and the search entry point). This feature carries two stories.
 2. **[FEATURE-05-02 — Search & Results Experience](EPIC-05/FEATURE-05-02-search-and-results-experience.md)** — implement the character search input with autocomplete, the digital | physical two-column results view, and the "last updated" freshness timestamp on each result. This feature carries three stories.
 3. **[FEATURE-05-03 — Detail & Review Workbench UI](EPIC-05/FEATURE-05-03-detail-and-review-workbench-ui.md)** — implement the card/variation detail page with its recent-sales table, the price-history chart (a sparkline with a 90-day/1-year toggle and a trend indicator), and the operator-only review-queue workbench. This feature carries three stories.
 
@@ -47,7 +47,7 @@ This epic is delivered through three features. Each link is relative to this fil
 ## Definition of Done
 
 - [ ] All 3 child features (FEATURE-05-01, FEATURE-05-02, FEATURE-05-03) are complete.
-- [ ] Vercel preview deployments and environment access are configured per <https://docs.blitzy.com/administration/environments>, with one preview deployment produced per pull request.
+- [ ] Vercel Production and Preview (= dev/qa) scopes and environment access are configured per <https://docs.blitzy.com/administration/environments>, with the Preview scope applied to all non-production branches/PRs (Neon `dev-qa`) and Production applied to `main` (Neon `production`).
 - [ ] The application shell (shared page frame, navigation, and search entry point) is implemented and renders on a Vercel preview URL.
 - [ ] The character search input with autocomplete is implemented and returns matching character names as the user types into the search box.
 - [ ] The digital | physical two-column results view is implemented, rendering each result row with its latest sold price, sold date, grade or condition, serial number when present, and a sparkline.
