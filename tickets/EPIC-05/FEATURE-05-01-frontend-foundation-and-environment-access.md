@@ -8,7 +8,7 @@ This feature establishes the frontend foundation for CompVault: it completes the
 
 ## Environment Access & Configuration
 
-All environment provisioning for this feature follows the canonical Blitzy environments reference: <https://docs.blitzy.com/administration/environments>. Per that reference, an environment is created for each target, build and run instructions are supplied in natural language, non-sensitive values are stored as plaintext environment variables and credentials are stored as encrypted secrets, and the environment is then attached to the project. This step-by-step configuration is completed in full **before** the search and results views (FEATURE-05-02) and the detail and review-queue workbench views (FEATURE-05-03) are implemented.
+All environment provisioning for this feature follows the canonical Blitzy environments reference: <https://docs.blitzy.com/administration/environments>. Per that reference (informational — Blitzy cannot create environments), the single Blitzy environment is configured manually, build and run instructions are supplied in natural language, non-sensitive values are stored as plaintext environment variables and credentials are stored as encrypted secrets, and the environment is then attached to the project. This step-by-step configuration is completed in full **before** the search and results views (FEATURE-05-02) and the detail and review-queue workbench views (FEATURE-05-03) are implemented.
 
 The frontend is a Next.js App Router application deployed on Vercel using exactly two deployed environments. The **Production** scope deploys from the git branch `main` and points at the Neon `production` branch; the **Preview** scope (= dev/qa) applies to all non-production git branches and pull requests and points at the shared Neon `dev-qa` branch. The Vercel GitHub integration still produces a shareable preview URL for each pull request under the Preview (= dev/qa) scope, so each pull request renders the shell against a live URL before merge. The Preview (= dev/qa) scope reads a preview-scoped configuration and never points at production data, keeping the `dev-qa` database isolated from the `production` database. The Development scope is local-only (consumed via `vercel env pull`) and is not a third deployed environment.
 
@@ -18,12 +18,12 @@ Every screen that renders within the shell reads from the EPIC-04 endpoints — 
 
 | Platform | Access required | Purpose in FEATURE-05-01 |
 |----------|-----------------|--------------------------|
-| Blitzy | Environment per target; plaintext variables and encrypted secrets | Store the frontend build and runtime variables (the EPIC-04 API base URL as a plaintext variable) and credentials as encrypted secrets per <https://docs.blitzy.com/administration/environments> |
+| Blitzy | The single Blitzy environment; plaintext variables and encrypted secrets | Store the frontend build and runtime variables (the EPIC-04 API base URL as a plaintext variable) and credentials as encrypted secrets per <https://docs.blitzy.com/administration/environments> |
 | Vercel | Project access; per-scope environment variables; Production and Preview (= dev/qa) deployment scopes | Build and host the Next.js App Router frontend; expose the Production scope (git branch `main` → Neon `production`) and the Preview (= dev/qa) scope (all non-production branches/PRs → Neon `dev-qa`) |
 
 ### Step-by-step configuration (complete before the views are implemented)
 
-1. Create the Blitzy environment(s) and store the frontend variables — the EPIC-04 API base URL and any public client configuration — as plaintext, with credentials stored as encrypted secrets, per <https://docs.blitzy.com/administration/environments>.
+1. Configure the single existing Blitzy environment manually and store the frontend variables — the EPIC-04 API base URL and any public client configuration — as plaintext, with credentials stored as encrypted secrets, per <https://docs.blitzy.com/administration/environments> (informational — Blitzy cannot create environments).
 2. Connect the repository to Vercel, enable the GitHub integration, and set the Production Branch to `main`, so pushes to `main` deploy under the Production scope and all non-production branches/pull requests deploy under the Preview (= dev/qa) scope.
 3. Set the Vercel project environment variables for the Preview (= dev/qa) and Production scopes so the shell resolves the EPIC-04 API base URL in each scope, with the Production scope pointing at the Neon `production` branch and the Preview (= dev/qa) scope pointing at the shared non-production Neon `dev-qa` branch.
 4. Confirm the EPIC-04 read and review-queue endpoints (or their published contracts) respond from the Preview (= dev/qa) environment before any screen is wired to live data.
@@ -40,7 +40,7 @@ This feature is delivered through two stories. Each link is relative to this fil
 
 ### Upstream (must be complete first)
 
-- **EPIC-01 — Environment & Configuration Foundation:** supplies the Blitzy environments, the Next.js + TypeScript scaffold, the Vercel project, and the secrets baseline the frontend builds on.
+- **EPIC-01 — Environment & Configuration Foundation:** supplies the single Blitzy environment, the Next.js + TypeScript scaffold, the Vercel project, and the secrets baseline the frontend builds on.
 - **EPIC-04 — Backend Application & API:** supplies the read and review-queue endpoints the shell's views consume — character search and autocomplete, the two-column digital | physical results, card/variation detail, the 90-day/1-year price-history and trend, and the operator review-queue. This dependency is informational at the shell stage: the shell renders the route entry points before the endpoints are wired, and no screen renders live data until its backing endpoint exists.
 
 ### Downstream (informational — not a build prerequisite of this feature)

@@ -8,7 +8,7 @@ This feature stands up the CompVault test harness from zero: a single Vitest con
 
 ## Environment Access & Configuration
 
-All environment provisioning for this feature follows the canonical Blitzy environments reference: <https://docs.blitzy.com/administration/environments>. Per that reference, an environment is created for each target, build and run instructions are supplied in natural language, non-sensitive values are stored as plaintext environment variables and credentials are stored as encrypted secrets, and the environment is then attached to the project. This step-by-step configuration is completed in full **before** the suites in FEATURE-06-02 and the pipeline gates in FEATURE-06-03 run.
+All environment provisioning for this feature follows the canonical Blitzy environments reference: <https://docs.blitzy.com/administration/environments>. Per that reference (informational — Blitzy cannot create environments), the single Blitzy environment is configured manually, build and run instructions are supplied in natural language, non-sensitive values are stored as plaintext environment variables and credentials are stored as encrypted secrets, and the environment is then attached to the project. This step-by-step configuration is completed in full **before** the suites in FEATURE-06-02 and the pipeline gates in FEATURE-06-03 run.
 
 **Runtime floor:** Node `>=20.20.2` for the TypeScript application (the floor declared in the root `package.json` `engines.node`); the JavaScript Apify actor under test keeps its own floor of Node `>=18` (declared in `apify/package.json` `engines.node`; its container image runs Node 20). The CI runner pins the project Node version at `>=20.20.2`, which satisfies both, so the harness exercises both targets on one runtime.
 
@@ -32,8 +32,8 @@ This wiring depends on EPIC-02's branching topology; the branching stories (`STO
 
 ### Step-by-step configuration (complete before suites run)
 
-1. Create the Blitzy environment and store the test `DATABASE_URL` plus CI credentials as encrypted secrets per <https://docs.blitzy.com/administration/environments>.
-2. Grant the CI workflow a Neon API key that carries branch create and delete permission.
+1. Configure the single existing Blitzy environment manually and store the test `DATABASE_URL` plus CI credentials as encrypted secrets per <https://docs.blitzy.com/administration/environments> (informational — Blitzy cannot create environments).
+2. Provide the CI workflow the shared `dev-qa` branch's static pooled (`DATABASE_URL`) and unpooled (`DATABASE_URL_UNPOOLED`) connection strings as encrypted secrets; the CI workflow does **not** create or delete Neon branches and is granted **no** branch-lifecycle Neon API key, because the long-lived `dev-qa` branch is provisioned once in EPIC-02 (`STORY-02-01-*`) and reused on every run.
 3. Pin the GitHub Actions runner to Node `>=20.20.2` (the TypeScript application floor from the root `package.json`), which also satisfies the Apify actor's own `>=18` floor (from `apify/package.json`), so both targets execute on one runtime.
 4. Confirm the Vitest harness reads the injected test `DATABASE_URL` for the integration suite and resolves `__fixtures__` and boundary mocks from one shared path.
 5. Run a no-op `vitest run` to prove the wiring before the suites are authored, so the environment is validated ahead of the first real test execution.

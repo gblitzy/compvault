@@ -28,7 +28,7 @@ This feature is delivered through four stories. Each link is relative to this fi
 
 ### Upstream (must be complete first)
 
-- **EPIC-01 — Environment & Configuration Foundation:** supplies the Blitzy environments and the secrets baseline, including the `LLM_API_KEY` encrypted secret the LLM-fallback parser reads.
+- **EPIC-01 — Environment & Configuration Foundation:** supplies the single Blitzy environment and the secrets baseline, including the `LLM_API_KEY` encrypted secret the LLM-fallback parser reads.
 - **EPIC-02 — Database Platform & Schema:** supplies the Neon access layer and the `extraction`, `sale_observation`, `review_queue`, `variation`, and `parallel_type` tables this feature writes to and matches against; every data write depends on EPIC-02's Neon branching (`STORY-02-01-*`), and the writes use the pooled `DATABASE_URL`.
 - **[FEATURE-03-01 — Apify Actor Integration](FEATURE-03-01-apify-actor-integration.md):** produces the `raw_listing` rows this feature parses — the persisted listing `title` is the parser's reliable input (the identity-bearing field the current actor emits), while `item_aspects` and `description` are optional, nullable enrichment columns the current actor does **not** emit and that stay null until a future actor enrichment populates them; the parser relies on the emitted `title` and treats structured aspects/description as absent until that enrichment lands. Without persisted raw listings there is nothing to extract.
 

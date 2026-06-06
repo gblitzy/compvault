@@ -10,8 +10,8 @@ This is the environment-access story of FEATURE-05-01 and the first of its **two
 
 ## Environment Access & Configuration
 
-- **Canonical reference.** All environment provisioning for this story follows the Blitzy environments reference at <https://docs.blitzy.com/administration/environments>. Per that reference, an environment is created for each target, build and run instructions are supplied in natural language, non-sensitive values are stored as plaintext variables and sensitive credentials are stored as encrypted secrets, and the environment is then attached to the project.
-- **Platforms.** **Blitzy** provides the managed environment and the encrypted secret storage. **Vercel** is the frontend host: it builds the application, exposes the Production scope (git branch `main` → Neon `production`) and the Preview (= dev/qa) scope (all non-production branches/PRs → Neon `dev-qa`), and supplies the per-scope environment variables the frontend reads.
+- **Canonical reference.** All environment provisioning for this story follows the Blitzy environments reference at <https://docs.blitzy.com/administration/environments>. Per that reference (informational — Blitzy cannot create environments), the single Blitzy environment is configured manually, build and run instructions are supplied in natural language, non-sensitive values are stored as plaintext variables and sensitive credentials are stored as encrypted secrets, and the environment is then attached to the project.
+- **Platforms.** **Blitzy** provides the single Blitzy environment and the encrypted secret storage. **Vercel** is the frontend host: it builds the application, exposes the Production scope (git branch `main` → Neon `production`) and the Preview (= dev/qa) scope (all non-production branches/PRs → Neon `dev-qa`), and supplies the per-scope environment variables the frontend reads.
 - **Deployment model.** The UI is a Next.js App Router frontend deployed on Vercel (the application and its API routes run as stateless request/response on Vercel) using exactly two deployed environments. The Production scope deploys from the git branch `main` and points at the Neon `production` branch; the Preview (= dev/qa) scope applies to all non-production git branches and pull requests, produces a shareable preview URL for each, and points at the shared Neon `dev-qa` branch. The Preview (= dev/qa) scope reads a preview-scoped configuration and never points at production data. Because previews and CI now share the single `dev-qa` branch, per-run database isolation is lost — concurrent CI runs and open PRs share `dev-qa` state. This is the inherent consequence of the two-environment model. The Development scope is local-only (consumed via `vercel env pull`) and is not a third deployed environment.
 - **Client-safe exposure.** Only client-safe configuration reaches the browser. Browser-exposed values carry a `NEXT_PUBLIC_`-prefixed name; server-only secrets such as `DATABASE_URL` stay in encrypted secrets and are excluded from the client bundle.
 - **Sequencing.** This step-by-step environment configuration completes **before** the UI implementation work in FEATURE-05-02 (search and results) and FEATURE-05-03 (detail and review-queue workbench) proceeds.
@@ -20,12 +20,12 @@ This is the environment-access story of FEATURE-05-01 and the first of its **two
 
 | Platform | Access required | Purpose in STORY-05-01-01 |
 |----------|-----------------|---------------------------|
-| Blitzy | Environment per target; plaintext variables and encrypted secrets | Store the frontend build and runtime variables as plaintext and credentials as encrypted secrets per <https://docs.blitzy.com/administration/environments>, then attach the environment to the project |
+| Blitzy | The single Blitzy environment; plaintext variables and encrypted secrets | Store the frontend build and runtime variables as plaintext and credentials as encrypted secrets per <https://docs.blitzy.com/administration/environments>, then attach the environment to the project |
 | Vercel | Project access; GitHub integration; per-scope environment variables; Production and Preview (= dev/qa) deployment scopes | Build and host the Next.js App Router frontend; expose the Production scope (git branch `main` → Neon `production`) and the Preview (= dev/qa) scope (all non-production branches/PRs → Neon `dev-qa`) at unique URLs |
 
 ### Step-by-step configuration (complete before the views are implemented)
 
-1. Create the Blitzy environment(s) for the frontend target per <https://docs.blitzy.com/administration/environments>.
+1. Configure the single existing Blitzy environment manually for the frontend per <https://docs.blitzy.com/administration/environments> (informational — Blitzy cannot create environments).
 2. Store non-sensitive values as plaintext variables and credentials as encrypted secrets, then attach the environment to the project so the build reads its variables.
 3. Connect the repository to Vercel, enable the GitHub integration, and set the Production Branch to `main`, so pushes to `main` deploy under the Production scope and all non-production branches/pull requests deploy under the Preview (= dev/qa) scope.
 4. Set the Vercel Preview (= dev/qa) and Production environment variables so the frontend resolves its configuration in each scope, with the Production scope pointing at the Neon `production` branch and the Preview (= dev/qa) scope pointing at the shared non-production Neon `dev-qa` branch connection string.
@@ -33,7 +33,7 @@ This is the environment-access story of FEATURE-05-01 and the first of its **two
 
 ## Acceptance Criteria
 
-1. **(env-access — cites Blitzy doc)** Given the Blitzy environments reference at <https://docs.blitzy.com/administration/environments>, When an environment is created for the frontend target, Then non-sensitive values are stored as plaintext variables, credentials are stored as encrypted secrets, and the environment is attached to the project.
+1. **(env-access — cites Blitzy doc)** Given the Blitzy environments reference at <https://docs.blitzy.com/administration/environments> (informational — Blitzy cannot create environments), When the single Blitzy environment is configured manually for the frontend, Then non-sensitive values are stored as plaintext variables, credentials are stored as encrypted secrets, and the environment is attached to the project.
 2. **(valid-output — Preview scope = dev/qa)** Given the Vercel project is connected to the GitHub repository, When a pull request is opened against `main`, Then Vercel produces a Preview (= dev/qa) deployment reachable at a unique URL that is recorded on the pull request and resolved against the shared Neon `dev-qa` branch.
 3. **(valid-output — production on main)** Given a commit is merged to `main`, When the production deployment runs, Then the production build deploys from `main` under the Production scope (→ Neon `production`) while all non-production branches and pull requests deploy under the Preview (= dev/qa) scope (→ Neon `dev-qa`).
 4. **(input-validation — missing variable)** Given a required environment variable or secret (for example `DATABASE_URL`) is absent at build time, When the build runs, Then the build fails with a named error identifying the missing variable and no deployment is published.
@@ -43,7 +43,7 @@ This is the environment-access story of FEATURE-05-01 and the first of its **two
 
 ## Sub-tasks
 
-- [ ] Create the Blitzy environment(s) per <https://docs.blitzy.com/administration/environments> (@frontend-engineer / @devops)
+- [ ] Configure the single existing Blitzy environment manually per <https://docs.blitzy.com/administration/environments> (informational — Blitzy cannot create environments) (@frontend-engineer / @devops)
 - [ ] Store credentials as encrypted secrets and non-sensitive values as plaintext variables, then attach the environment to the project (@devops)
 - [ ] Connect the Vercel project and the GitHub integration (@devops)
 - [ ] Configure the Production scope (deploy from `main` → Neon `production`) and the Preview (= dev/qa) scope (all non-production branches/PRs → Neon `dev-qa`) (@devops)
@@ -55,13 +55,13 @@ This is the environment-access story of FEATURE-05-01 and the first of its **two
 - **Invalid — missing required secret:** a required variable or secret is absent at build time → the build fails with a named error identifying the missing variable and no deployment is published.
 - **Invalid — preview pointed at production data:** a Preview (= dev/qa) deployment is configured against the `production` database → this is blocked, and the preview resolves the shared non-production Neon `dev-qa` connection string instead.
 - **Error — build failure:** a Preview (= dev/qa) build fails → a blocking status check is posted on the pull request and the merge is blocked until the build status is green.
-- **Invalid — environment not attached:** the environment is created but not attached to the project → the configuration is incomplete and the build cannot read its variables.
+- **Invalid — environment not attached:** the single Blitzy environment is configured but not attached to the project → the configuration is incomplete and the build cannot read its variables.
 
 ## Dependencies
 
 ### Upstream (must be complete first)
 
-- **[STORY-01-01-01 — Create Blitzy Environments](../../EPIC-01/FEATURE-01-01/STORY-01-01-01-create-blitzy-environments.md):** establishes the Blitzy environments and encrypted secret storage this story attaches the frontend target to.
+- **[STORY-01-01-01 — Configure the Blitzy Environment](../../EPIC-01/FEATURE-01-01/STORY-01-01-01-create-blitzy-environments.md):** establishes the single Blitzy environment and encrypted secret storage this story attaches the frontend target to.
 - **[STORY-01-03-02 — Configure Vercel Env Vars](../../EPIC-01/FEATURE-01-03/STORY-01-03-02-configure-vercel-env-vars.md):** establishes the Vercel project environment variables this story scopes for Preview (= dev/qa) and Production.
 - **[EPIC-01 — Environment & Configuration Foundation](../../EPIC-01-environment-and-configuration-foundation.md):** the environment and secrets baseline epic these upstream stories belong to.
 
@@ -83,7 +83,7 @@ This is the environment-access story of FEATURE-05-01 and the first of its **two
 
 ## Definition of Done
 
-- [ ] Blitzy environment(s) created per <https://docs.blitzy.com/administration/environments>, with plaintext variables, encrypted secrets, and the environment attached to the project.
+- [ ] The single Blitzy environment is configured manually per <https://docs.blitzy.com/administration/environments> (informational — Blitzy cannot create environments), with plaintext variables, encrypted secrets, and the environment attached to the project.
 - [ ] Vercel project connected to the GitHub repository; all non-production branches/pull requests deploy under the Preview (= dev/qa) scope (→ Neon `dev-qa`) with a unique URL; production deploys from `main` under the Production scope (→ Neon `production`).
 - [ ] A missing required variable or secret fails the build with a named error and publishes no deployment.
 - [ ] A failed Preview (= dev/qa) build posts a status check that blocks the merge until the build status is green.

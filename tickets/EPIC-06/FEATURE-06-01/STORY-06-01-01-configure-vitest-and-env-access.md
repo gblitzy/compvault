@@ -10,7 +10,7 @@ As a **Platform Engineer**, I want Vitest configured to run both the TypeScript 
 
 ## Environment Access & Configuration
 
-All environment provisioning for this story follows the canonical Blitzy environments reference: <https://docs.blitzy.com/administration/environments>. Per that reference, an environment is created for each target, build and run instructions are supplied in natural language, non-sensitive values are stored as plaintext environment variables and credentials are stored as encrypted secrets, and the environment is then attached to the project. This configuration is finished in full **before** `vitest run` executes.
+All environment provisioning for this story follows the canonical Blitzy environments reference: <https://docs.blitzy.com/administration/environments>. Per that reference (informational — Blitzy cannot create environments), the single Blitzy environment is configured manually, build and run instructions are supplied in natural language, non-sensitive values are stored as plaintext environment variables and credentials are stored as encrypted secrets, and the environment is then attached to the project. This configuration is finished in full **before** `vitest run` executes.
 
 **Runtime floor:** Node `>=20.20.2` for the TypeScript application (root `package.json` `engines.node`); the JavaScript Apify actor under test keeps its own floor of Node `>=18` (from `apify/package.json`). The CI runner pins the project Node version at `>=20.20.2`, which satisfies both, so one Vitest invocation exercises both targets on a single runtime.
 
@@ -24,7 +24,7 @@ All environment provisioning for this story follows the canonical Blitzy environ
 
 ### Step-by-step configuration (complete before `vitest run`)
 
-1. Create the Blitzy environment for the target per <https://docs.blitzy.com/administration/environments>.
+1. Configure the single existing Blitzy environment manually per <https://docs.blitzy.com/administration/environments> (informational — Blitzy cannot create environments).
 2. Add non-sensitive values as plaintext variables, and add credentials — the test `DATABASE_URL` among them — as encrypted secrets.
 3. Attach the environment to the project so the harness reads the variables and secrets at run time.
 4. Confirm the runner reports a Node version of `>=20.20.2`, which satisfies the TypeScript application's `>=20.20.2` floor and the Apify actor's own `>=18` floor.
