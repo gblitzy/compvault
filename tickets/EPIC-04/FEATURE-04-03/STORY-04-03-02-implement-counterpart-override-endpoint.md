@@ -43,7 +43,7 @@ This story is the **write/edit side** of counterpart links. The **read side** th
 - [ ] Define and implement the duplicate-pair rule as HTTP 409: a pre-insert existence check on `(link_level, physical_ref_id, digital_ref_id)` runs inside a single serializable transaction so a repeat triple returns HTTP 409 and inserts no second row (@backend-engineer)
 - [ ] Implement the digital-only rejection: a `variation`-level request whose digital side has `parallel_type.format_availability = 'digital'` with no physical `variation` sharing `(card_id, parallel_type_id)` returns HTTP 422 labeled `no physical counterpart` (@backend-engineer)
 - [ ] Thread the operator `userId` from the `getUserId()` seam, gate the endpoint to the operator role, and read the pooled `DATABASE_URL` only — never the unpooled `DATABASE_URL_UNPOOLED` (@backend-engineer)
-- [ ] Author API integration tests for CREATE, EDIT, the 400/404/422/409 paths, and the digital-only rejection against a per-CI Neon branch (@qa-engineer)
+- [ ] Author API integration tests for CREATE, EDIT, the 400/404/422/409 paths, and the digital-only rejection against the `dev-qa` Neon branch (@qa-engineer)
 - [ ] Confirm the request handler issues zero LLM calls and sources data through official APIs only (@tech-lead)
 
 ## Edge Cases
@@ -65,7 +65,7 @@ This story is the **write/edit side** of counterpart links. The **read side** th
 
 - **[STORY-04-02-03 — Implement Card Detail & Sales Table](../FEATURE-04-02/STORY-04-02-03-implement-card-detail-and-sales-table.md):** the read side of counterpart links — its `counterpart` block reads the `counterpart_override` rows this endpoint writes and returns them with `source = 'override'`, override-first over the computed match. This story is the write side; that endpoint is the read side the frontend renders.
 - **[EPIC-05 — Frontend User Interface](../../EPIC-05-frontend-user-interface.md):** the counterpart-override editor in the review-queue workbench (`STORY-05-03-03`) consumes this endpoint for writes and the detail endpoint's `counterpart` block for display.
-- **[EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md):** `STORY-06-02-02` integration-tests these API routes against a per-CI Neon branch at an API coverage floor of **≥75%**.
+- **[EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md):** `STORY-06-02-02` integration-tests these API routes against the `dev-qa` Neon branch at an API coverage floor of **≥75%**.
 
 ### Parent feature
 
@@ -91,4 +91,4 @@ This story is the **write/edit side** of counterpart links. The **read side** th
 - [ ] The handler reads the pooled `DATABASE_URL` (never the unpooled `DATABASE_URL_UNPOOLED`), threads the operator `userId` from the `getUserId()` seam (v1 = the single seeded operator), gates the action to the operator role, and issues zero LLM calls.
 - [ ] Computed counterparts (the same `card_id` across formats, or the same `card_id` plus `parallel_type_id` across formats) remain the default path; this endpoint writes only manual exceptions, every row carrying `is_manual = TRUE`.
 - [ ] No prohibited vague quality term appears in any acceptance-criteria statement; every such statement names a measurable pass/fail condition.
-- [ ] **Testing:** API integration tests against a per-CI Neon branch pass with a ≥75% coverage target.
+- [ ] **Testing:** API integration tests against the `dev-qa` Neon branch pass with a ≥75% coverage target.
