@@ -8,7 +8,7 @@
 ## Environment Access & Configuration
 This story builds within the managed environments provisioned by [FEATURE-01-01 — Blitzy Environment Provisioning](../FEATURE-01-01-blitzy-environment-provisioning.md), documented per the canonical reference: <https://docs.blitzy.com/administration/environments>.
 
-- **Toolchain floor:** Node `>=18` (sourced from `apify/package.json` `engines.node`; the Apify container image is Node 20).
+- **Toolchain floor:** Node `>=20.20.2` for the application runtime (from the root `package.json` `engines.node`); the Apify actor keeps its own `>=18` floor (from `apify/package.json`; the Apify container image is Node 20).
 - **Layout authority:** the six top-level directories mirror the repository scaffold in PRD §7.6.1 for the single TypeScript Next.js (App Router) repo.
 - **No install in this task:** this ticket describes the directory work; the directories are created when the ticket is implemented. Full environment steps are not duplicated here — see FEATURE-01-01.
 
