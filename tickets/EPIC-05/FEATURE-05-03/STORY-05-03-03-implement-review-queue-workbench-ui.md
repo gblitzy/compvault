@@ -10,7 +10,7 @@ This is the **third of the three** stories in FEATURE-05-03 (Detail & Review Wor
 
 ## Environment Access
 
-Environment access and preview deployment for this view are configured once in [FEATURE-05-01 — Frontend Foundation & Environment Access](../FEATURE-05-01-frontend-foundation-and-environment-access.md) per the canonical Blitzy environments reference <https://docs.blitzy.com/administration/environments>; this workbench additionally requires the EPIC-04 review-queue list/resolve endpoints and the counterpart-override endpoint to return and accept the items it renders and resolves. The full environment-configuration procedure is not duplicated here.
+Environment access and the Vercel Preview (= dev/qa) deployment for this view are configured once in [FEATURE-05-01 — Frontend Foundation & Environment Access](../FEATURE-05-01-frontend-foundation-and-environment-access.md) per the canonical Blitzy environments reference <https://docs.blitzy.com/administration/environments>; this workbench additionally requires the EPIC-04 review-queue list/resolve endpoints and the counterpart-override endpoint to return and accept the items it renders and resolves. The full environment-configuration procedure is not duplicated here.
 
 ## Acceptance Criteria
 
