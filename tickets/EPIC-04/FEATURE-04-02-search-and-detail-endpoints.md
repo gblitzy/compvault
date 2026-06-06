@@ -42,7 +42,7 @@ This feature is delivered through four stories. Each link is relative to this fi
 ### Downstream (informational — not a build prerequisite of this feature)
 
 - **EPIC-05 — Frontend User Interface:** the search, two-column results, card-detail, and price-history-chart views consume these endpoints.
-- **EPIC-06 — Testing & CI/CD Quality Gates:** `STORY-06-02-02` integration-tests these API routes against a per-CI Neon branch, targeting an API coverage floor of **≥75%**.
+- **EPIC-06 — Testing & CI/CD Quality Gates:** `STORY-06-02-02` integration-tests these API routes against the `dev-qa` Neon branch, targeting an API coverage floor of **≥75%**.
 
 ## Definition of Done
 
@@ -62,4 +62,4 @@ This feature is delivered through four stories. Each link is relative to this fi
 - [ ] Every endpoint reads the pooled `DATABASE_URL`; no endpoint reads the unpooled `DATABASE_URL_UNPOOLED`.
 - [ ] Every endpoint threads the operator `userId` from the `getUserId()` seam, issues no LLM call in the request path, and reads official data sources only.
 - [ ] No prohibited vague quality term appears in any acceptance-criteria-like statement; every such statement names a measurable pass/fail condition.
-- [ ] **Testing:** API integration tests for the search, two-column results, card-detail, and price-history routes pass against a per-CI Neon branch and meet the **≥75%** API coverage target tracked in EPIC-06 (`STORY-06-02-02`).
+- [ ] **Testing:** API integration tests for the search, two-column results, card-detail, and price-history routes pass against the `dev-qa` Neon branch and meet the **≥75%** API coverage target tracked in EPIC-06 (`STORY-06-02-02`).
