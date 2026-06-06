@@ -56,7 +56,7 @@ The latest sold price per variation comes from the canonical **`LEFT JOIN LATERA
 - [ ] Flag a digital-only parallel (`parallel_type.format_availability = 'digital'`, for example Gilded) with `no physical counterpart` and emit it only in the `digital` group (@backend-engineer)
 - [ ] Return a `null` latest-price field labeled as no recorded sale for a `variation` with zero `sale_observation` rows, and map a `card_id` that matches no `card` to HTTP 404 with a named `error` field (@backend-engineer)
 - [ ] Thread the operator `userId` from the `getUserId()` seam, keep the catalog (`variation` / `parallel_type`) and `sale_observation` reads GLOBAL (scoped by `card_id`, never filtered by `userId`), and read the pooled `DATABASE_URL` only — never the unpooled `DATABASE_URL_UNPOOLED` (@backend-engineer)
-- [ ] Author API integration tests against a per-CI Neon branch covering the two-group partition, the latest-price LATERAL row, the zero-sale `null` path, the digital-only `no physical counterpart` flag, and the invalid-`format` HTTP 400 path (@qa-engineer)
+- [ ] Author API integration tests against the `dev-qa` Neon branch covering the two-group partition, the latest-price LATERAL row, the zero-sale `null` path, the digital-only `no physical counterpart` flag, and the invalid-`format` HTTP 400 path (@qa-engineer)
 - [ ] Confirm the request handler sources data through official APIs only and issues zero LLM calls (@tech-lead)
 
 ## Edge Cases
@@ -77,7 +77,7 @@ The latest sold price per variation comes from the canonical **`LEFT JOIN LATERA
 ### Downstream (informational — not a build prerequisite of this story)
 
 - **[EPIC-05 — Frontend User Interface](../../EPIC-05-frontend-user-interface.md):** the digital | physical two-column results view (`STORY-05-02-02`) consumes this endpoint.
-- **[EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md):** `STORY-06-02-02` integration-tests these API routes against a per-CI Neon branch at an API coverage floor of **≥75%**.
+- **[EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md):** `STORY-06-02-02` integration-tests these API routes against the `dev-qa` Neon branch at an API coverage floor of **≥75%**.
 
 ### Parent feature
 
@@ -100,4 +100,4 @@ The latest sold price per variation comes from the canonical **`LEFT JOIN LATERA
 - [ ] A `format` filter value outside the allowed set returns HTTP 400 with an `error` field that names `format`, and a `card_id` that matches no `card` returns HTTP 404 with a named `error` field.
 - [ ] The handler reads the pooled `DATABASE_URL` (never `DATABASE_URL_UNPOOLED`), threads `userId` from `getUserId()`, keeps the catalog and `sale_observation` reads GLOBAL (not filtered by `userId`), and issues no LLM call in the request path.
 - [ ] No prohibited vague quality term appears in any acceptance-criteria statement; every statement names a measurable pass/fail condition (an HTTP status code, an exact column or error-field name, or "exactly two groups").
-- [ ] **Testing:** API integration tests against a per-CI Neon branch pass with a ≥75% coverage target.
+- [ ] **Testing:** API integration tests against the `dev-qa` Neon branch pass with a ≥75% coverage target.
