@@ -86,7 +86,7 @@ Enter every sensitive credential as an **encrypted / Sensitive** entry, never as
 
 Neon models environments as **branches**. Create exactly **two long-lived branches** — `production` and `dev-qa`.
 
-1. **Create the Neon project** and generate a **project API key** (carrying branch create/delete permission).
+1. **Create the Neon project** and generate a **project API key** (carrying **branch-create permission only** — no branch-delete permission, since branch teardown is no longer performed).
 2. **Production environment.** Use the project's default branch as **`production`**; mark it a **protected** branch (this prevents accidental deletes/resets). Confirm the server runs **PostgreSQL 15+** — required by the `valuation` table's `UNIQUE NULLS NOT DISTINCT` constraint; any Postgres server below 15 rejects it.
 3. **Dev/QA environment.** Create **one** long-lived branch named **`dev-qa`** from `production` (a copy-on-write clone). This single branch **replaces** the former short-lived preview and CI database branches.
 4. **Capture connection strings.** For **each** environment, record **both** the pooled (`DATABASE_URL`) and the unpooled (`DATABASE_URL_UNPOOLED`) connection string.
