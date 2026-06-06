@@ -8,9 +8,9 @@ This feature configures the Vercel runtime and the backend environment access, t
 
 ## Environment Access & Configuration
 
-All environment provisioning for this feature follows the canonical Blitzy environments reference: <https://docs.blitzy.com/administration/environments>. Per that reference, an environment is created for each target, build and run instructions are supplied in natural language, non-sensitive values are stored as plaintext environment variables and credentials are stored as encrypted secrets, and the environment is then attached to the project. This step-by-step configuration is completed in full **before** the endpoints in [FEATURE-04-02 — Search & Detail Endpoints](FEATURE-04-02-search-and-detail-endpoints.md) and [FEATURE-04-03 — Operator Review-Queue API](FEATURE-04-03-operator-review-queue-api.md) are implemented.
+All environment provisioning for this feature follows the canonical Blitzy environments reference: <https://docs.blitzy.com/administration/environments>. Per that reference (informational — Blitzy cannot create environments), the single Blitzy environment is configured manually, build and run instructions are supplied in natural language, non-sensitive values are stored as plaintext environment variables and credentials are stored as encrypted secrets, and the environment is then attached to the project. This step-by-step configuration is completed in full **before** the endpoints in [FEATURE-04-02 — Search & Detail Endpoints](FEATURE-04-02-search-and-detail-endpoints.md) and [FEATURE-04-03 — Operator Review-Queue API](FEATURE-04-03-operator-review-queue-api.md) are implemented.
 
-The backend is a Next.js App Router application deployed on Vercel, where every API route runs as a stateless serverless request/response handler. At runtime each handler reads the **pooled** `DATABASE_URL` to open short-lived Neon connections — never the unpooled `DATABASE_URL_UNPOOLED`, which EPIC-02 reserves for DDL and migrations; many short-lived serverless invocations would otherwise exhaust raw Postgres connections, so the runtime path reads the pooled connection string only. The runtime toolchain floor is **Node `>=18`**, matching the rest of the project.
+The backend is a Next.js App Router application deployed on Vercel, where every API route runs as a stateless serverless request/response handler. At runtime each handler reads the **pooled** `DATABASE_URL` to open short-lived Neon connections — never the unpooled `DATABASE_URL_UNPOOLED`, which EPIC-02 reserves for DDL and migrations; many short-lived serverless invocations would otherwise exhaust raw Postgres connections, so the runtime path reads the pooled connection string only. The runtime toolchain floor is **Node `>=20.20.2`** (the application engine floor from the root `package.json`; the earlier `>=18` originated from the Apify actor's `apify/package.json`).
 
 Every handler threads the operator `userId` from the `getUserId()` seam (EPIC-02 `STORY-02-03-02`, which returns the seeded operator user backed by the `app_user` table) from day one, so enabling real authentication later (Auth.js or Clerk) becomes a configuration change rather than a refactor; full authentication is deferred and is out of MVP scope. The handlers call official data sources only and issue no LLM call in the request path — LLM-assisted extraction stays in the EPIC-03 batch jobs. Because the endpoints read the Neon-backed catalog and the ingested sales, this feature depends on EPIC-02 (the pooled Neon access layer and the `getUserId()` seam) and EPIC-03 (the ingested sales data) being in place before the endpoints are implemented.
 
@@ -18,15 +18,15 @@ Every handler threads the operator `userId` from the `getUserId()` seam (EPIC-02
 
 | Platform | Access required | Purpose in FEATURE-04-01 |
 |----------|-----------------|--------------------------|
-| Blitzy | Environment per target; plaintext variables and encrypted secrets | Store the pooled `DATABASE_URL` and the API runtime credentials as encrypted secrets, with non-sensitive values stored as plaintext, per <https://docs.blitzy.com/administration/environments> |
-| Vercel | Project access; per-scope environment variables; serverless runtime and deployments | Build and host the Next.js App Router API; expose the pooled `DATABASE_URL` to each route at runtime, with the production deployment on `main` |
+| Blitzy | The single Blitzy environment; plaintext variables and encrypted secrets | Store the pooled `DATABASE_URL` and the API runtime credentials as encrypted secrets, with non-sensitive values stored as plaintext, per <https://docs.blitzy.com/administration/environments> |
+| Vercel | Project access; per-scope environment variables; serverless runtime and deployments | Build and host the Next.js App Router API; expose the pooled `DATABASE_URL` to each route at runtime across exactly two scopes — the **Production** scope (git `main` → Neon `production`) and the **Preview** scope (dev/qa; all non-production branches/PRs → Neon `dev-qa`), with database/API values marked **Sensitive** |
 
 ### Step-by-step configuration (complete before endpoint work begins)
 
-1. Create the Blitzy environment(s) and store the pooled `DATABASE_URL` plus the API runtime credentials as encrypted secrets, with non-sensitive values stored as plaintext, per <https://docs.blitzy.com/administration/environments>.
-2. Connect the repository to Vercel so the Next.js App Router API builds and deploys, with the production deployment on `main`.
-3. Set the Vercel project environment variables for each scope so every API route resolves the **pooled** `DATABASE_URL` at runtime and never the unpooled `DATABASE_URL_UNPOOLED`.
-4. Pin the Vercel runtime to Node `>=18` so the API executes on the project's declared runtime floor.
+1. Configure the single Blitzy environment manually and store the pooled `DATABASE_URL` plus the API runtime credentials as encrypted secrets, with non-sensitive values stored as plaintext, per <https://docs.blitzy.com/administration/environments> (informational — Blitzy cannot create environments).
+2. Connect the repository to Vercel so the Next.js App Router API builds and deploys across exactly two scopes — the **Production** scope deploying from git `main`, and the **Preview** (dev/qa) scope covering all non-production branches and pull requests (the **Development** scope is local-only via `vercel env pull`).
+3. Set the Vercel environment variables for the **Production** scope (pointing `DATABASE_URL`/`DATABASE_URL_UNPOOLED` at the Neon `production` branch) and the **Preview** (dev/qa) scope (pointing them at the Neon `dev-qa` branch), marking database/API values **Sensitive**, so every API route resolves the **pooled** `DATABASE_URL` at runtime and never the unpooled `DATABASE_URL_UNPOOLED`.
+4. Pin the Vercel runtime to Node `>=20.20.2` so the API executes on the project's declared runtime floor.
 5. Confirm the EPIC-02 access layer — the pooled Neon client and the `getUserId()` seam from `STORY-02-03-02` — and the EPIC-03 ingested sales are reachable before any endpoint is implemented.
 6. Validate the wiring with a single health route that opens a pooled Neon connection on a Vercel deployment and returns HTTP 200, confirming the environment is provisioned before the first endpoint is authored.
 
@@ -42,7 +42,7 @@ This feature is delivered through three stories. Each link is relative to this f
 
 ### Upstream (must be complete first)
 
-- **EPIC-01 — Environment & Configuration Foundation:** supplies the Blitzy environments, the Next.js + TypeScript scaffold, the Vercel project, and the secrets baseline the API builds on.
+- **EPIC-01 — Environment & Configuration Foundation:** supplies the single Blitzy environment, the Next.js + TypeScript scaffold, the Vercel project, and the secrets baseline the API builds on.
 - **EPIC-02 — Database Platform & Schema:** supplies the pooled Neon access layer and the `getUserId()` seam (`STORY-02-03-02`) that every handler threads; the scaffolding reads the pooled `DATABASE_URL` this layer exposes, and `getUserId()` returns the seeded operator user backed by the `app_user` table.
 
 ### Downstream (informational — not a build prerequisite of this feature)
@@ -50,17 +50,17 @@ This feature is delivered through three stories. Each link is relative to this f
 - **[FEATURE-04-02 — Search & Detail Endpoints](FEATURE-04-02-search-and-detail-endpoints.md):** builds the character search, the two-column results, the card-detail, and the price-history endpoints on this scaffolding and validation.
 - **[FEATURE-04-03 — Operator Review-Queue API](FEATURE-04-03-operator-review-queue-api.md):** builds the review-queue and the operator counterpart-override endpoints on this scaffolding and validation.
 - **EPIC-05 — Frontend User Interface:** consumes the resulting endpoints to render search, the two-column results, the detail price-history chart, and the operator review-queue workbench.
-- **EPIC-06 — Testing & CI/CD Quality Gates:** `STORY-06-02-02` integration-tests these API routes against a per-CI Neon branch, targeting an API coverage floor of **≥75%**.
+- **EPIC-06 — Testing & CI/CD Quality Gates:** `STORY-06-02-02` integration-tests these API routes against the `dev-qa` Neon branch, targeting an API coverage floor of **≥75%**.
 
 ## Definition of Done
 
 - [ ] All 3 stories (STORY-04-01-01, STORY-04-01-02, STORY-04-01-03) are complete.
 - [ ] Vercel runtime and environment access are configured per <https://docs.blitzy.com/administration/environments>, with non-sensitive values stored as plaintext variables and credentials stored as encrypted secrets.
-- [ ] The platforms Blitzy (encrypted secret storage) and Vercel (serverless API runtime and per-scope environment variables) are provisioned, and the API runtime floor is Node `>=18`.
+- [ ] The platforms Blitzy (encrypted secret storage) and Vercel (serverless API runtime and per-scope environment variables) are provisioned, and the API runtime floor is Node `>=20.20.2`.
 - [ ] Every API route resolves the pooled `DATABASE_URL` at runtime; no route reads the unpooled `DATABASE_URL_UNPOOLED`.
 - [ ] The API route scaffolding threads `userId` from the `getUserId()` seam (EPIC-02 `STORY-02-03-02`) through every handler from day one, with full authentication deferred (out of MVP scope).
 - [ ] Query-parameter validation rejects malformed input with HTTP 400 and an `error` field naming the rejected parameter before any data read is issued.
 - [ ] No request handler issues an LLM call (LLM-assisted extraction stays in the EPIC-03 batch jobs), and every external data source is an official API.
 - [ ] The environment configuration is completed before the FEATURE-04-02 and FEATURE-04-03 endpoints are implemented, and the EPIC-02 (access layer + `getUserId()` seam) and EPIC-03 (ingested sales) dependencies are confirmed reachable.
 - [ ] No prohibited vague quality term appears in any acceptance-criteria-like statement; every such statement names a measurable pass/fail condition.
-- [ ] **Testing:** API integration tests for the scaffolded routes pass against a per-CI Neon branch and meet the **≥75%** API coverage target tracked in EPIC-06 (`STORY-06-02-02`).
+- [ ] **Testing:** API integration tests for the scaffolded routes pass against the `dev-qa` Neon branch and meet the **≥75%** API coverage target tracked in EPIC-06 (`STORY-06-02-02`).
