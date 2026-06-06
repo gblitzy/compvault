@@ -31,7 +31,7 @@ This feature is delivered through two stories. Each link is relative to this fil
 ### Downstream (informational — not a build prerequisite of this feature)
 
 - **EPIC-05 — Frontend User Interface:** the operator review-queue workbench (`STORY-05-03-03`) consumes the list, resolve, and counterpart-override endpoints this feature exposes.
-- **EPIC-06 — Testing & CI/CD Quality Gates:** `STORY-06-02-02` integration-tests these API routes against the `dev-qa` Neon branch, targeting an API coverage floor of **≥75%**. Because these integration tests share the single `dev-qa` branch, concurrent runs share `dev-qa` state and per-run database isolation is not provided — see the lost-isolation note in `STORY-04-01-01` and EPIC-02.
+- **EPIC-06 — Testing & CI/CD Quality Gates:** `STORY-06-02-02` integration-tests these API routes against the `dev-qa` Neon branch, targeting an API coverage floor of **≥75%**. Because previews and CI now share the single `dev-qa` branch, per-run database isolation is lost — concurrent CI runs and open PRs share `dev-qa` state. This is the inherent consequence of the two-environment model. See the lost-isolation note in `STORY-04-01-01` and EPIC-02.
 
 ## Definition of Done
 

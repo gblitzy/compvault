@@ -19,10 +19,11 @@ All variable and secret configuration for this feature follows the canonical Bli
 
 ### Variable set standardized by `.env.example` (with status)
 
-`.env.example` enumerates the eight variable names below with placeholder values and zero real secrets. The **pooled** `DATABASE_URL` (application runtime) and the **unpooled** `DATABASE_URL_UNPOOLED` (DDL and migrations) are kept distinct, because mixing the two breaks migrations.
+`.env.example` enumerates the eight secret variable names below — plus the plaintext runtime-mode variable `NODE_ENV` (non-sensitive), which is separate from the eight secret names — all with placeholder values and zero real secrets. The **pooled** `DATABASE_URL` (application runtime) and the **unpooled** `DATABASE_URL_UNPOOLED` (DDL and migrations) are kept distinct, because mixing the two breaks migrations.
 
 | Variable | Role | Status |
 |----------|------|--------|
+| `NODE_ENV` | Runtime mode flag stored as a **plaintext** variable (non-sensitive); set to `production` for deployed builds | Active (MVP) |
 | `DATABASE_URL` | Pooled Neon connection read at application runtime | Active (MVP) |
 | `DATABASE_URL_UNPOOLED` | Unpooled Neon connection used for DDL and migrations | Active (MVP) |
 | `APIFY_TOKEN` | Apify Platform token authorizing actor execution; the Apify actor is the primary ingestion source in this MVP | Active (MVP) |
@@ -38,7 +39,7 @@ All variable and secret configuration for this feature follows the canonical Bli
 
 ### Step-by-step configuration (complete before dependent epics consume these variables)
 
-1. Author `.env.example` at the repository root enumerating all eight variable names — `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `APIFY_TOKEN`, `LLM_API_KEY`, `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET`, `STRIPE_SECRET_KEY`, and `STRIPE_WEBHOOK_SECRET` — with placeholder values and zero real secrets, marking the deferred eBay credentials and the Phase-3 Stripe credentials distinctly from the active MVP variables (STORY-01-03-01).
+1. Author `.env.example` at the repository root enumerating the plaintext `NODE_ENV` variable and all eight secret variable names — `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `APIFY_TOKEN`, `LLM_API_KEY`, `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET`, `STRIPE_SECRET_KEY`, and `STRIPE_WEBHOOK_SECRET` — with placeholder values and zero real secrets, marking the deferred eBay credentials and the Phase-3 Stripe credentials distinctly from the active MVP variables (STORY-01-03-01).
 2. Configure the Vercel project environment variables for the **Production** scope (`main` → Neon `production`) and the **Preview** scope (= dev/qa, all non-production branches/PRs → Neon `dev-qa`) so each deployment resolves the active variable set; the Development scope is local-only via `vercel env pull` (STORY-01-03-02).
 3. Configure the GitHub Actions encrypted secrets the CI pipeline and the scheduled ingestion workflow read, mirrored from the single Blitzy environment's source-of-truth configuration per <https://docs.blitzy.com/administration/environments> (informational only — Blitzy cannot create environments) (STORY-01-03-03).
 4. Confirm the pooled `DATABASE_URL` and the unpooled `DATABASE_URL_UNPOOLED` are stored as distinct values in every scope so migrations and runtime reads do not share one connection string.
@@ -48,7 +49,7 @@ All variable and secret configuration for this feature follows the canonical Bli
 
 This feature is delivered through three stories. Each link is relative to this file inside the `EPIC-01/` directory and resolves into the `FEATURE-01-03/` subfolder.
 
-1. **[STORY-01-03-01 — Author the .env.example Template](FEATURE-01-03/STORY-01-03-01-author-env-example.md)** — author `.env.example` enumerating all eight required variables (the active set, the deferred eBay credentials, and the Phase-3 Stripe placeholders) with placeholder values and zero real secrets.
+1. **[STORY-01-03-01 — Author the .env.example Template](FEATURE-01-03/STORY-01-03-01-author-env-example.md)** — author `.env.example` enumerating all eight required secret variables (the active set, the deferred eBay credentials, and the Phase-3 Stripe placeholders) plus the plaintext `NODE_ENV` variable, with placeholder values and zero real secrets.
 2. **[STORY-01-03-02 — Configure Vercel Environment Variables](FEATURE-01-03/STORY-01-03-02-configure-vercel-env-vars.md)** — configure the Vercel project environment variables across the **Production** and **Preview** (= dev/qa) scopes so each deployment resolves the active variable set.
 3. **[STORY-01-03-03 — Configure GitHub Actions Secrets](FEATURE-01-03/STORY-01-03-03-configure-github-actions-secrets.md)** — configure the GitHub Actions encrypted secrets the CI pipeline and the scheduled ingestion workflow read, held encrypted at rest and never committed.
 
@@ -68,7 +69,7 @@ This feature is delivered through three stories. Each link is relative to this f
 ## Definition of Done
 
 - [ ] All 3 stories (STORY-01-03-01, STORY-01-03-02, STORY-01-03-03) are complete.
-- [ ] `.env.example` is committed at the repository root and enumerates all eight variable names — `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `APIFY_TOKEN`, `LLM_API_KEY`, the deferred `EBAY_CLIENT_ID`/`EBAY_CLIENT_SECRET`, and the Phase-3 `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET` — with placeholder values and zero real secrets.
+- [ ] `.env.example` is committed at the repository root and enumerates the plaintext `NODE_ENV` variable and all eight secret variable names — `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `APIFY_TOKEN`, `LLM_API_KEY`, the deferred `EBAY_CLIENT_ID`/`EBAY_CLIENT_SECRET`, and the Phase-3 `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET` — with placeholder values and zero real secrets.
 - [ ] The deferred eBay credentials and the Phase-3 Stripe credentials are marked distinctly from the active MVP variables in `.env.example`.
 - [ ] The Vercel project environment variables are configured across the **Production** and **Preview** (= dev/qa) scopes.
 - [ ] The GitHub Actions encrypted secrets are configured and never committed; `.env`, `.env.local`, and `.env.*.local` remain git-ignored.

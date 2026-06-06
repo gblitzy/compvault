@@ -10,18 +10,20 @@ This story realizes part of EPIC-01's mandatory per-epic environment-access obli
 
 - **Platform:** Vercel — the project environment variables, set in exactly two deployed scopes: **Production** (deploys from git `main`, pointing at the Neon `production` branch) and **Preview = dev/qa** (applies to all non-production branches and PRs, pointing at the Neon `dev-qa` branch). The **Development** scope is local-only (consumed via `vercel env pull`) and is NOT a third deployed environment. The single Blitzy environment holds the source-of-truth configuration; this story mirrors the values to the two Vercel scopes.
 - **Doc essence applied here:** non-sensitive values are stored as plaintext variables and sensitive credentials as encrypted (Sensitive) variables; secret values are stored encrypted and stay out of build logs. The **Preview scope (dev/qa)** applies to all non-production branches and PRs and points at the Neon `dev-qa` branch; `main` deploys to the **Production scope** pointing at the Neon `production` branch (PRD §7.5).
-- **Variable set mirrored:** the four active variables from [STORY-01-03-01](STORY-01-03-01-author-env-example.md) — `DATABASE_URL` (pooled, runtime), `DATABASE_URL_UNPOOLED` (unpooled, DDL/migrations), `APIFY_TOKEN`, `LLM_API_KEY`. The **Preview** scope's `DATABASE_URL`/`DATABASE_URL_UNPOOLED` point at the Neon `dev-qa` branch and the **Production** scope's point at the Neon `production` branch. The deferred `EBAY_CLIENT_ID`/`EBAY_CLIENT_SECRET` and the Phase-3 `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET` are not set as active variables.
+- **Variable set mirrored:** the plaintext variable `NODE_ENV` (non-sensitive runtime-mode flag) plus the four active secrets from [STORY-01-03-01](STORY-01-03-01-author-env-example.md) — `DATABASE_URL` (pooled, runtime), `DATABASE_URL_UNPOOLED` (unpooled, DDL/migrations), `APIFY_TOKEN`, `LLM_API_KEY`. The **Preview** scope's `DATABASE_URL`/`DATABASE_URL_UNPOOLED` point at the Neon `dev-qa` branch and the **Production** scope's point at the Neon `production` branch. The deferred `EBAY_CLIENT_ID`/`EBAY_CLIENT_SECRET` and the Phase-3 `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET` are not set as active variables.
+
+> **Lost-isolation note.** Because previews and CI now share the single `dev-qa` branch, per-run database isolation is lost — concurrent CI runs and open PRs share `dev-qa` state. This is the inherent consequence of the two-environment model.
 
 ### Step-by-step configuration (complete BEFORE dependent work)
 1. Open the Vercel project Settings → Environment Variables page per <https://docs.blitzy.com/administration/environments>.
-2. Enter the four active variables for the **Preview** scope (dev/qa) using values mirrored from the single Blitzy environment, pointing `DATABASE_URL`/`DATABASE_URL_UNPOOLED` at the Neon `dev-qa` branch.
-3. Enter the four active variables for the **Production** scope, pointing `DATABASE_URL`/`DATABASE_URL_UNPOOLED` at the Neon `production` branch.
-4. Mark `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `APIFY_TOKEN`, and `LLM_API_KEY` as Sensitive so values stay out of build logs.
+2. Enter `NODE_ENV` (plaintext) and the four active secrets for the **Preview** scope (dev/qa) using values mirrored from the single Blitzy environment, pointing `DATABASE_URL`/`DATABASE_URL_UNPOOLED` at the Neon `dev-qa` branch.
+3. Enter `NODE_ENV` (plaintext) and the four active secrets for the **Production** scope, pointing `DATABASE_URL`/`DATABASE_URL_UNPOOLED` at the Neon `production` branch.
+4. Mark `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `APIFY_TOKEN`, and `LLM_API_KEY` as Sensitive so values stay out of build logs; keep `NODE_ENV` as a plaintext (non-Sensitive) variable.
 5. Run a name-match check asserting every Vercel variable name exists in `.env.example`.
 6. Trigger a Preview deployment and confirm a non-zero exit when a required variable is removed.
 
 ## Acceptance Criteria (Given/When/Then)
-1. **(Valid output)** **Given** the variable set from [STORY-01-03-01](STORY-01-03-01-author-env-example.md), **when** the DevOps Engineer configures Vercel per <https://docs.blitzy.com/administration/environments>, **then** the project lists the four active variables (`DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `APIFY_TOKEN`, `LLM_API_KEY`) in both the Preview and Production scopes.
+1. **(Valid output)** **Given** the variable set from [STORY-01-03-01](STORY-01-03-01-author-env-example.md), **when** the DevOps Engineer configures Vercel per <https://docs.blitzy.com/administration/environments>, **then** the project lists the plaintext variable `NODE_ENV` and the four active secrets (`DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `APIFY_TOKEN`, `LLM_API_KEY`) in both the Preview and Production scopes.
 2. **(Valid output — pooled at runtime)** **Given** `DATABASE_URL`, **when** it is set in Vercel, **then** its value is the pooled connection string and `DATABASE_URL_UNPOOLED` is a separate variable used by migrations, not by the runtime app.
 3. **(Error handling — encrypted)** **Given** a sensitive value such as `APIFY_TOKEN`, **when** it is stored in Vercel, **then** it is marked as a Sensitive variable and its value is absent from build logs and from the deployment output.
 4. **(Input validation — name match)** **Given** each Vercel variable name, **when** it is created, **then** it matches a variable name in `.env.example` character-for-character, and any name absent from `.env.example` is rejected.
@@ -31,15 +33,15 @@ This story realizes part of EPIC-01's mandatory per-epic environment-access obli
 
 ## Sub-Tasks
 - [ ] Open the Vercel project Settings → Environment Variables page per <https://docs.blitzy.com/administration/environments>. `@devops-engineer`
-- [ ] Enter the four active variables for the Preview scope (dev/qa) using values mirrored from the single Blitzy environment, pointing `DATABASE_URL`/`DATABASE_URL_UNPOOLED` at the Neon `dev-qa` branch. `@devops-engineer`
-- [ ] Enter the four active variables for the Production scope, pointing `DATABASE_URL`/`DATABASE_URL_UNPOOLED` at the Neon `production` branch. `@devops-engineer`
+- [ ] Enter `NODE_ENV` (plaintext) and the four active secrets for the Preview scope (dev/qa) using values mirrored from the single Blitzy environment, pointing `DATABASE_URL`/`DATABASE_URL_UNPOOLED` at the Neon `dev-qa` branch. `@devops-engineer`
+- [ ] Enter `NODE_ENV` (plaintext) and the four active secrets for the Production scope, pointing `DATABASE_URL`/`DATABASE_URL_UNPOOLED` at the Neon `production` branch. `@devops-engineer`
 - [ ] Mark `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `APIFY_TOKEN`, and `LLM_API_KEY` as Sensitive so values stay out of build logs. `@devops-engineer`
 - [ ] Run a name-match check asserting every Vercel variable name exists in `.env.example`. `@platform-engineer`
 - [ ] Trigger a Preview deployment and confirm a non-zero exit when a required variable is removed. `@devops-engineer`
 
 ## Edge Cases
 - **Empty/Null:** a required active variable left empty in Vercel — the deployment check exits non-zero and names it.
-- **Boundary:** all four active variables must be present in both the Preview and Production scopes; three in either scope blocks completion.
+- **Boundary:** `NODE_ENV` (plaintext) and all four active secrets must be present in both the Preview and Production scopes; a missing required variable in either scope blocks completion.
 - **Invalid:** a Vercel variable name with no match in `.env.example` — rejected by the name-match check.
 - **Concurrent:** two deployments run while a variable is updated — each deployment reads one consistent snapshot of the variable set.
 
@@ -54,7 +56,7 @@ This story realizes part of EPIC-01's mandatory per-epic environment-access obli
 - **Fibonacci points:** 5
 
 ## Definition of Done
-- [ ] The four active variables are set in both the Vercel Preview and Production scopes.
+- [ ] `NODE_ENV` (plaintext) and the four active secrets are set in both the Vercel Preview and Production scopes.
 - [ ] `DATABASE_URL` is the pooled connection; `DATABASE_URL_UNPOOLED` is the unpooled migrations connection.
 - [ ] Active sensitive values are marked Sensitive and stay out of build logs.
 - [ ] Every Vercel variable name matches `.env.example`; the deferred and Phase-3 keys are not active.
