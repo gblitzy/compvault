@@ -88,7 +88,7 @@ Neon models environments as **branches**. Create exactly **two long-lived branch
 
 1. **Create the Neon project** and generate a **project API key** (carrying branch create/delete permission).
 2. **Production environment.** Use the project's default branch as **`production`**; mark it a **protected** branch (this prevents accidental deletes/resets). Confirm the server runs **PostgreSQL 15+** — required by the `valuation` table's `UNIQUE NULLS NOT DISTINCT` constraint; any Postgres server below 15 rejects it.
-3. **Dev/QA environment.** Create **one** long-lived branch named **`dev-qa`** from `production` (a copy-on-write clone). This single branch **replaces** the former per-PR preview branches and per-CI ephemeral branches.
+3. **Dev/QA environment.** Create **one** long-lived branch named **`dev-qa`** from `production` (a copy-on-write clone). This single branch **replaces** the former short-lived preview and CI database branches.
 4. **Capture connection strings.** For **each** environment, record **both** the pooled (`DATABASE_URL`) and the unpooled (`DATABASE_URL_UNPOOLED`) connection string.
 5. **Route consumers.** Vercel **Production** and production migrations use the `production` strings; Vercel **Preview** (dev/qa), CI, migration rehearsal, and local development all use the `dev-qa` strings.
 
@@ -97,7 +97,7 @@ Neon models environments as **branches**. Create exactly **two long-lived branch
 | production | `production` (default root) | Yes | Vercel Production, production migrations | runtime queries | DDL/migrations |
 | dev/qa | `dev-qa` (long-lived) | No | Vercel Preview, CI, migration rehearsal, local dev | runtime queries | DDL/migrations |
 
-> **Trade-off — per-run database isolation is lost.** Because previews and CI now share the single `dev-qa` branch, **concurrent CI runs and open PRs share `dev-qa` state**. This is the inherent consequence of the two-environment directive: the legacy model gave every PR and every CI run its own isolated throwaway branch, whereas the shared `dev-qa` branch trades that per-run isolation for a simpler two-environment topology.
+> **Trade-off — per-run database isolation is lost.** Because previews and CI now share the single `dev-qa` branch, **concurrent CI runs and open PRs share `dev-qa` state**. This is the inherent consequence of the two-environment directive: the legacy model gave every PR and every CI run its own isolated branch, whereas the shared `dev-qa` branch trades that per-run isolation for a simpler two-environment topology.
 
 ---
 
