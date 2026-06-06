@@ -8,7 +8,7 @@ This feature delivers the CompVault valuation-detail surface: a card/variation d
 
 ## Environment Access & Configuration
 
-The platform access these views require — Blitzy encrypted secrets for server-side credentials, and Vercel preview deployments with per-scope environment access — is provisioned once in [FEATURE-05-01 — Frontend Foundation & Environment Access](FEATURE-05-01-frontend-foundation-and-environment-access.md) and documented per the canonical Blitzy environments reference <https://docs.blitzy.com/administration/environments>; the full step-by-step environment configuration is not duplicated here.
+The platform access these views require — Blitzy encrypted secrets for server-side credentials, and the Vercel Production and Preview (= dev/qa) deployment scopes with per-scope environment access — is provisioned once in [FEATURE-05-01 — Frontend Foundation & Environment Access](FEATURE-05-01-frontend-foundation-and-environment-access.md) and documented per the canonical Blitzy environments reference <https://docs.blitzy.com/administration/environments>; the full step-by-step environment configuration is not duplicated here.
 
 These views render live data only after the EPIC-04 endpoints they read respond from the configured API base URL in the active Vercel scope — specifically the card/variation detail endpoint (with its recent-sales table), the 90-day/1-year price-history and trend endpoint backed by the `valuation` cache, and the operator review-queue list/resolve and counterpart-override endpoints. The browser receives only the client-safe public API base URL; server-side credentials such as `DATABASE_URL` remain in encrypted secrets and never enter the browser bundle.
 
