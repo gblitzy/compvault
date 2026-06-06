@@ -8,9 +8,9 @@ This feature initializes the **Next.js App Router + TypeScript** application at 
 
 ## Environment Access & Configuration
 
-The managed environments this scaffold builds and runs within come from [FEATURE-01-01 — Blitzy Environment Provisioning](FEATURE-01-01-blitzy-environment-provisioning.md), documented per the canonical Blitzy environments reference: <https://docs.blitzy.com/administration/environments>. This feature does not duplicate those environment steps; it consumes the Dev, Staging, and Prod environments that feature attaches to the project.
+The managed environments this scaffold builds and runs within come from [FEATURE-01-01 — Blitzy Environment Provisioning](FEATURE-01-01-blitzy-environment-provisioning.md), documented per the canonical Blitzy environments reference: <https://docs.blitzy.com/administration/environments>. This feature does not duplicate those environment steps; it consumes the single Blitzy environment that feature attaches to the project.
 
-**Runtime floor:** the toolchain runs on Node `>=18`. The existing Apify actor sets this floor through its `engines.node` field and its container image runs Node 20; the scaffold pins the project Node version at or above this floor so the application and the actor share one runtime. The application targets the **Next.js App Router deployed on Vercel** (serverless request/response), so the scaffold's build and run configuration matches that stack.
+**Runtime floor:** the toolchain runs on Node `>=20.20.2` (the application floor, from the root `package.json` `engines.node`). The Apify actor keeps its own lower floor of Node `>=18` (set through its `engines.node` field in `apify/package.json`; its container image runs Node 20). The scaffold pins the project Node version at `>=20.20.2`, which satisfies both the application and the actor. The application targets the **Next.js App Router deployed on Vercel** (serverless request/response), so the scaffold's build and run configuration matches that stack.
 
 This is a documentation backlog: this feature does **not** execute `npm install` or any scaffold command. The initialization, linting, typecheck, and directory-creation commands described in the child stories are executed when those stories are implemented.
 
@@ -26,7 +26,7 @@ This feature is delivered through three stories. Each link is relative to this f
 
 ### Upstream (must be complete first)
 
-- **[FEATURE-01-01 — Blitzy Environment Provisioning](FEATURE-01-01-blitzy-environment-provisioning.md):** provides the Dev, Staging, and Prod environments the scaffold builds and runs within. The scaffold pins Node `>=18` against the runtime those environments expose.
+- **[FEATURE-01-01 — Blitzy Environment Provisioning](FEATURE-01-01-blitzy-environment-provisioning.md):** provides the single Blitzy environment the scaffold builds and runs within. The scaffold pins Node `>=20.20.2` (the application floor; the Apify actor keeps its own `>=18`) against the runtime that environment exposes.
 
 ### Downstream (informational — not a build prerequisite of this feature)
 
@@ -44,7 +44,7 @@ This feature is delivered through three stories. Each link is relative to this f
 - [ ] ESLint is configured and runs with zero errors on the scaffold.
 - [ ] `tsc --noEmit` strict typecheck exits 0 with zero type errors on the scaffold.
 - [ ] The directory layout `app/`, `db/`, `lib/`, `jobs/`, `scripts/`, and `.github/` is present at the repository root (six directories).
-- [ ] The Node `>=18` runtime floor is recorded for the project so the application and the Apify actor share one runtime.
+- [ ] The Node `>=20.20.2` runtime floor is recorded for the project (the application floor); the Apify actor keeps its own Node `>=18` floor, and `>=20.20.2` satisfies both.
 - [ ] The scaffold is configured to target the Next.js App Router on Vercel, building on the environments from [FEATURE-01-01 — Blitzy Environment Provisioning](FEATURE-01-01-blitzy-environment-provisioning.md) per <https://docs.blitzy.com/administration/environments>.
 - [ ] No prohibited vague quality term appears in any measurable statement; every such statement names a concrete pass/fail condition.
 - [ ] **Testing:** `tsc --noEmit` exits 0 with zero type errors and ESLint runs with zero errors on the scaffold before any dependent epic (EPIC-02 through EPIC-06) adds code.
