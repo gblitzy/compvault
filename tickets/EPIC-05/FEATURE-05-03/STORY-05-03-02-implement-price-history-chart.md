@@ -10,7 +10,7 @@ This is the **second of the three** stories in FEATURE-05-03 (Detail & Review Wo
 
 ## Environment Access
 
-Environment access and preview deployment for this view are configured once in [FEATURE-05-01 — Frontend Foundation & Environment Access](../FEATURE-05-01-frontend-foundation-and-environment-access.md) per the canonical Blitzy environments reference <https://docs.blitzy.com/administration/environments>; this chart additionally requires the EPIC-04 price-history endpoint backed by the `valuation` cache to return the windowed `p25`/`median`/`p75` series and the `trend_dir`/`trend_pct` it renders. The full environment-configuration procedure is not duplicated here.
+Environment access and the Vercel Preview (= dev/qa) deployment for this view are configured once in [FEATURE-05-01 — Frontend Foundation & Environment Access](../FEATURE-05-01-frontend-foundation-and-environment-access.md) per the canonical Blitzy environments reference <https://docs.blitzy.com/administration/environments>; this chart additionally requires the EPIC-04 price-history endpoint backed by the `valuation` cache to return the windowed `p25`/`median`/`p75` series and the `trend_dir`/`trend_pct` it renders. The full environment-configuration procedure is not duplicated here.
 
 ## Acceptance Criteria
 
