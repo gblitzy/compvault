@@ -50,7 +50,7 @@ The data partition is the move that makes this work: catalog, `sale_observation`
 - **[`STORY-04-01-03 — Implement Query-Parameter Validation`](STORY-04-01-03-implement-query-parameter-validation.md):** wraps this scaffolding with query-parameter input validation that runs before any data read.
 - **[FEATURE-04-02 — Search & Detail Endpoints](../FEATURE-04-02-search-and-detail-endpoints.md)** and **[FEATURE-04-03 — Operator Review-Queue API](../FEATURE-04-03-operator-review-queue-api.md):** build their handlers on this `userId`-threaded scaffolding.
 - **[EPIC-05 — Frontend User Interface](../../EPIC-05-frontend-user-interface.md):** consumes the endpoints served by this scaffolding.
-- **EPIC-06 `STORY-06-02-02`:** integration-tests these API routes against the `dev-qa` Neon branch at an API coverage floor of **≥75%**.
+- **EPIC-06 `STORY-06-02-02`:** integration-tests these API routes against the `dev-qa` Neon branch at an API coverage floor of **≥75%**. Because these integration tests share the single `dev-qa` branch, concurrent runs share `dev-qa` state and per-run database isolation is not provided — see the lost-isolation note in `STORY-04-01-01` and EPIC-02.
 
 ### Parent feature
 

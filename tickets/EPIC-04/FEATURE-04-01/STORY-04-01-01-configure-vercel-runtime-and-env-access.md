@@ -46,7 +46,7 @@ The backend is a Next.js (App Router) + TypeScript application deployed on Verce
 
 ## Sub-tasks
 
-- [ ] Create the Blitzy environment(s) per <https://docs.blitzy.com/administration/environments>, store the pooled `DATABASE_URL` as an encrypted secret with non-sensitive config as plaintext variables, then attach the environment to the project (@devops-engineer)
+- [ ] Configure the single Blitzy environment manually per <https://docs.blitzy.com/administration/environments>, store the pooled `DATABASE_URL` as an encrypted secret with non-sensitive config as plaintext variables, then attach the environment to the project (@devops-engineer)
 - [ ] Configure the Vercel project — GitHub integration, the Production scope from git `main` and the Preview (dev/qa) scope for all non-production branches/PRs (@devops-engineer)
 - [ ] Set the Vercel Preview and Production environment variables, the Preview (dev/qa) scope pointing at the Neon `dev-qa` branch and the Production scope at the Neon `production` branch (database/API values marked Sensitive) so Preview never points at the `production` branch (@devops-engineer)
 - [ ] Set and verify the Vercel runtime at Node `>=20.20.2` (@devops-engineer)
@@ -67,7 +67,7 @@ The backend is a Next.js (App Router) + TypeScript application deployed on Verce
 
 ### Upstream (must be complete first)
 
-- **[EPIC-01 — Environment & Configuration Foundation](../../EPIC-01-environment-and-configuration-foundation.md):** supplies the Blitzy environments, the Vercel project, and the secrets / `.env.example` baseline this story attaches the backend runtime to.
+- **[EPIC-01 — Environment & Configuration Foundation](../../EPIC-01-environment-and-configuration-foundation.md):** supplies the single Blitzy environment, the Vercel project, and the secrets / `.env.example` baseline this story attaches the backend runtime to.
 - **[EPIC-02 — Database Platform & Schema](../../EPIC-02-database-platform-and-schema.md):** `STORY-02-03-01` provides the pooled Neon client the runtime reads through `DATABASE_URL`, and `STORY-02-01-04` documents the pooled-vs-unpooled connection split and tracks the open verification item — whether the existing local Neon setup is enough for local and test access.
 
 ### Downstream (informational — not a build prerequisite of this story)

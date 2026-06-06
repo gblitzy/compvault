@@ -42,7 +42,7 @@ This feature is delivered through four stories. Each link is relative to this fi
 ### Downstream (informational — not a build prerequisite of this feature)
 
 - **EPIC-05 — Frontend User Interface:** the search, two-column results, card-detail, and price-history-chart views consume these endpoints.
-- **EPIC-06 — Testing & CI/CD Quality Gates:** `STORY-06-02-02` integration-tests these API routes against the `dev-qa` Neon branch, targeting an API coverage floor of **≥75%**.
+- **EPIC-06 — Testing & CI/CD Quality Gates:** `STORY-06-02-02` integration-tests these API routes against the `dev-qa` Neon branch, targeting an API coverage floor of **≥75%**. Because these integration tests share the single `dev-qa` branch, concurrent runs share `dev-qa` state and per-run database isolation is not provided — see the lost-isolation note in `STORY-04-01-01` and EPIC-02.
 
 ## Definition of Done
 

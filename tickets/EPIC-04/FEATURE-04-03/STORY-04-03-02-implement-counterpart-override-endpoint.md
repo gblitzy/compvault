@@ -65,7 +65,7 @@ This story is the **write/edit side** of counterpart links. The **read side** th
 
 - **[STORY-04-02-03 — Implement Card Detail & Sales Table](../FEATURE-04-02/STORY-04-02-03-implement-card-detail-and-sales-table.md):** the read side of counterpart links — its `counterpart` block reads the `counterpart_override` rows this endpoint writes and returns them with `source = 'override'`, override-first over the computed match. This story is the write side; that endpoint is the read side the frontend renders.
 - **[EPIC-05 — Frontend User Interface](../../EPIC-05-frontend-user-interface.md):** the counterpart-override editor in the review-queue workbench (`STORY-05-03-03`) consumes this endpoint for writes and the detail endpoint's `counterpart` block for display.
-- **[EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md):** `STORY-06-02-02` integration-tests these API routes against the `dev-qa` Neon branch at an API coverage floor of **≥75%**.
+- **[EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md):** `STORY-06-02-02` integration-tests these API routes against the `dev-qa` Neon branch at an API coverage floor of **≥75%**. Because these integration tests share the single `dev-qa` branch, concurrent runs share `dev-qa` state and per-run database isolation is not provided — see the lost-isolation note in `STORY-04-01-01` and EPIC-02.
 
 ### Parent feature
 
