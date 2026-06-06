@@ -61,7 +61,7 @@ The `valuation` row carries `id`, `variation_id` (→ `variation(id)`, NOT NULL)
 - [ ] Return `p25` / `median` / `p75`, `price_min` / `price_max`, `trend_pct`, `trend_dir` (`-1`/`0`/`+1`), `sample_size`, `confidence`, and `computed_at` for the selected window (@backend-engineer)
 - [ ] Key every series on `variation_id` + `grade_id` + `window_days` so a series is never mixed across grades or formats, relying on the `UNIQUE NULLS NOT DISTINCT` constraint and the `idx_valuation_variation` index (@backend-engineer)
 - [ ] Thread the operator `userId` from the `getUserId()` seam, keep the `valuation` read GLOBAL (not filtered by `userId`), and read the pooled `DATABASE_URL` only — never the unpooled `DATABASE_URL_UNPOOLED` (@backend-engineer)
-- [ ] Author API integration tests against a per-CI Neon branch covering the invalid `window` (HTTP 400), the valid `90` and `365` series, the trend fields, the `sample_size = 0` / `1`–`4` / `≥ 5` labels, the HTTP 404 no-row path, and the NULL-`grade_id` digital series (@qa-engineer)
+- [ ] Author API integration tests against the `dev-qa` Neon branch covering the invalid `window` (HTTP 400), the valid `90` and `365` series, the trend fields, the `sample_size = 0` / `1`–`4` / `≥ 5` labels, the HTTP 404 no-row path, and the NULL-`grade_id` digital series (@qa-engineer)
 - [ ] Confirm the request handler computes no valuation and issues zero LLM calls, sourcing data through official APIs only (@tech-lead)
 
 ## Edge Cases
@@ -82,7 +82,7 @@ The `valuation` row carries `id`, `variation_id` (→ `variation(id)`, NOT NULL)
 ### Downstream (informational — not a build prerequisite of this story)
 
 - **[EPIC-05 — Frontend User Interface](../../EPIC-05-frontend-user-interface.md):** the price-history chart, the trend indicator, and the "last updated" timestamp (`STORY-05-03-02`) consume this endpoint.
-- **[EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md):** `STORY-06-02-02` integration-tests these API routes against a per-CI Neon branch at an API coverage floor of **≥75%**.
+- **[EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md):** `STORY-06-02-02` integration-tests these API routes against the `dev-qa` Neon branch at an API coverage floor of **≥75%**.
 
 ### Parent feature
 
@@ -104,4 +104,4 @@ The `valuation` row carries `id`, `variation_id` (→ `variation(id)`, NOT NULL)
 - [ ] A digital (NULL `grade_id`) series is returned distinct and is never mixed with a graded series; each series is keyed on `(variation_id, grade_id, window_days)` and held unique by `UNIQUE NULLS NOT DISTINCT` on PostgreSQL 15+.
 - [ ] The endpoint reads the precomputed `valuation` cache only — it computes no valuation and issues no LLM call in the request path — through the pooled `DATABASE_URL` (never `DATABASE_URL_UNPOOLED`), threads `userId` from `getUserId()`, and keeps the read GLOBAL (not filtered by `userId`).
 - [ ] No prohibited vague quality term appears in any acceptance-criteria statement; every statement names a measurable pass/fail condition (an HTTP status code, an exact column or error-field name, or an exact `sample_size` threshold).
-- [ ] **Testing:** API integration tests against a per-CI Neon branch pass with a ≥75% coverage target.
+- [ ] **Testing:** API integration tests against the `dev-qa` Neon branch pass with a ≥75% coverage target.
