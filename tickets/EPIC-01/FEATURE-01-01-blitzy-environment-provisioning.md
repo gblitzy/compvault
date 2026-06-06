@@ -4,40 +4,40 @@
 
 ## Feature Summary
 
-This feature provisions the three managed Blitzy environments — **Dev**, **Staging**, and **Prod** — defines the plaintext variables and encrypted secrets each one carries, attaches every environment to the project, and validates each with a test build that exits 0. The business value is one configured place to build, run, and deploy: with three named environments attached and a passing test build on each, every later epic inherits a settled execution target instead of provisioning its own. This is **EPIC-01's mandatory Environment Access & Configuration feature** — the per-epic environment-access obligation realized for the foundation. Scope is limited to provisioning the Blitzy environments, defining their plaintext variables and encrypted secrets, attaching them to the project, and running the validation build; it does **not** scaffold the application (that is [FEATURE-01-02 — Application Scaffolding & Tooling](FEATURE-01-02-application-scaffolding-and-tooling.md)) and it does **not** author `.env.example` or configure the Vercel and GitHub Actions secrets (that is [FEATURE-01-03 — Secrets & Variable Management](FEATURE-01-03-secrets-and-variable-management.md)). This feature is delivered through **3 stories**.
+This feature manually configures the **single Blitzy environment** — supplies its copy-paste build and run instructions, defines the plaintext variables and encrypted secrets it carries, attaches it to the project, and validates it with a test build that exits 0. The business value is one configured place to build, run, and deploy: with the single environment configured, attached, and passing a test build, every later epic inherits a settled execution target instead of provisioning its own. This is **EPIC-01's mandatory Environment Access & Configuration feature** — the per-epic environment-access obligation realized for the foundation. Scope is limited to manually configuring the single Blitzy environment, defining its plaintext variables and encrypted secrets, attaching it to the project, and running the validation build; it does **not** scaffold the application (that is [FEATURE-01-02 — Application Scaffolding & Tooling](FEATURE-01-02-application-scaffolding-and-tooling.md)) and it does **not** author `.env.example` or configure the Vercel and GitHub Actions secrets (that is [FEATURE-01-03 — Secrets & Variable Management](FEATURE-01-03-secrets-and-variable-management.md)). This feature is delivered through **3 stories**.
 
 ## Environment Access & Configuration
 
-All environment provisioning for this feature follows the canonical Blitzy environments reference: <https://docs.blitzy.com/administration/environments>. Per that reference, an environment is created for each target, build and run instructions are supplied in natural language, non-sensitive values are stored as plaintext environment variables and credentials are stored as encrypted secrets, and the environment is then attached to the project. This step-by-step configuration is completed in full **before** the application scaffold (FEATURE-01-02), the secrets baseline (FEATURE-01-03), and every dependent epic (EPIC-02 through EPIC-06) proceed.
+All configuration for this feature is performed manually in the single existing Blitzy environment; the canonical Blitzy environments reference <https://docs.blitzy.com/administration/environments> is **informational only** — Blitzy cannot create environments. Copy-paste build (`npm install` → `npm run build`) and run (`npm run start`) instructions are supplied, non-sensitive values are stored as plaintext environment variables and credentials are stored as encrypted secrets entered by hand, and the environment is attached to the project. This step-by-step configuration is completed in full **before** the application scaffold (FEATURE-01-02), the secrets baseline (FEATURE-01-03), and every dependent epic (EPIC-02 through EPIC-06) proceed.
 
-The platform accessed here is **Blitzy**: this feature creates the **Dev**, **Staging**, and **Prod** environments and attaches each of the three to the project.
+The platform accessed here is **Blitzy**: this feature manually configures the **single Blitzy environment** and attaches it to the project.
 
-**Plaintext variables vs encrypted secrets.** Non-sensitive configuration values (for example, a deployment region label or a feature flag) are stored as **plaintext variables**, readable in the Blitzy dashboard. Sensitive credentials (for example, a database connection string or an API token) are stored as **encrypted secrets** — held encrypted at rest and never written in plaintext. This split is defined for each of the three environments so that non-sensitive values stay legible while credentials stay protected.
+**Plaintext variables vs encrypted secrets.** Non-sensitive configuration values (for example, a deployment region label or a feature flag) are stored as **plaintext variables**, readable in the Blitzy dashboard. Sensitive credentials (for example, a database connection string or an API token) are stored as **encrypted secrets** — held encrypted at rest and never written in plaintext. This split is defined for the single environment so that non-sensitive values stay legible while credentials stay protected.
 
-**Runtime floor:** Node `>=18` for the application toolchain. The existing Apify actor sets this floor through its `engines.node` field and its container image runs Node 20; the Blitzy environments pin the project Node version at or above this floor so the application and the actor share one runtime. The application targets the **Next.js App Router deployed on Vercel**, so each environment's natural-language build and run instructions match that stack.
+**Runtime floor:** Node `>=20.20.2` for the application toolchain (the application floor, from the root `package.json` `engines.node`). The Apify actor keeps its own lower floor of Node `>=18` (set through its `engines.node` field in `apify/package.json`; its container image runs Node 20). The single Blitzy environment pins the project Node version at `>=20.20.2`, which satisfies both the application and the actor. The application targets the **Next.js App Router deployed on Vercel**, so the environment's copy-paste build and run instructions match that stack.
 
 ### Platforms and access required
 
 | Platform | Access required | Purpose in FEATURE-01-01 |
 |----------|-----------------|--------------------------|
-| Blitzy | Dev, Staging, and Prod environments; plaintext variables and encrypted secrets; project attachment | Create the three environments, store non-sensitive values as plaintext variables and credentials as encrypted secrets, attach each environment to the project, and validate each with a test build per <https://docs.blitzy.com/administration/environments> |
+| Blitzy | single environment (manual build/run + hand-entered secrets); plaintext variables and encrypted secrets; project attachment | Manually configure the single environment — supply the copy-paste build (`npm install` → `npm run build`) and run (`npm run start`) instructions, store non-sensitive values as plaintext variables and credentials as encrypted secrets entered by hand, attach the environment to the project, and validate it with a test build that exits 0 per <https://docs.blitzy.com/administration/environments> (informational only) |
 
 ### Step-by-step configuration (complete before dependent features and epics proceed)
 
-1. Create the Blitzy **Dev**, **Staging**, and **Prod** environments per <https://docs.blitzy.com/administration/environments>.
-2. Supply each environment's build and run instructions in natural language, matching the Next.js App Router on Vercel stack and the Node `>=18` runtime floor.
-3. Store each environment's non-sensitive configuration values as **plaintext variables** in the Blitzy dashboard.
-4. Store each environment's sensitive credentials as **encrypted secrets**, held encrypted at rest and never written in plaintext.
-5. Attach each of the three environments to the project.
-6. Validate each environment with a test build that exits 0 before the application scaffold (FEATURE-01-02), the secrets baseline (FEATURE-01-03), and the dependent epics (EPIC-02 through EPIC-06) proceed.
+1. Manually configure the single existing Blitzy environment per <https://docs.blitzy.com/administration/environments> (informational only — Blitzy cannot create environments).
+2. Supply the environment's copy-paste build and run instructions — build with `npm install` then `npm run build` (must exit 0), run with `npm run start` — matching the Next.js App Router on Vercel stack and the Node `>=20.20.2` application runtime floor (the Apify actor keeps its own `>=18`).
+3. Store the environment's non-sensitive configuration values as **plaintext variables** in the Blitzy dashboard.
+4. Store the environment's sensitive credentials as **encrypted secrets**, held encrypted at rest and never written in plaintext.
+5. Attach the single environment to the project.
+6. Validate the single environment with a test build that exits 0 (a missing required active secret halts the build with a non-zero exit code that names the missing key) before the application scaffold (FEATURE-01-02), the secrets baseline (FEATURE-01-03), and the dependent epics (EPIC-02 through EPIC-06) proceed.
 
 ## User Stories Index
 
 This feature is delivered through three stories. Each link is relative to this file inside the `EPIC-01/` directory.
 
-1. **[STORY-01-01-01 — Create the Blitzy Environments](FEATURE-01-01/STORY-01-01-01-create-blitzy-environments.md)** — create the Dev, Staging, and Prod Blitzy environments per <https://docs.blitzy.com/administration/environments>, with each environment's build and run instructions matching the Next.js App Router on Vercel stack and the Node `>=18` floor.
-2. **[STORY-01-01-02 — Define Secrets & Variables](FEATURE-01-01/STORY-01-01-02-define-secrets-and-variables.md)** — define the plaintext variables (non-sensitive configuration) and the encrypted secrets (sensitive credentials, encrypted at rest) for each environment in the Blitzy dashboard.
-3. **[STORY-01-01-03 — Attach Environments & Validate Build](FEATURE-01-01/STORY-01-01-03-attach-environments-and-validate-build.md)** — attach the three environments to the project and validate each with a test build that exits 0.
+1. **[STORY-01-01-01 — Create the Blitzy Environments](FEATURE-01-01/STORY-01-01-01-create-blitzy-environments.md)** — manually configure the single Blitzy environment per <https://docs.blitzy.com/administration/environments> (informational only), with its copy-paste build (`npm install` → `npm run build`) and run (`npm run start`) instructions matching the Next.js App Router on Vercel stack and the Node `>=20.20.2` application floor (the Apify actor keeps its own `>=18`).
+2. **[STORY-01-01-02 — Define Secrets & Variables](FEATURE-01-01/STORY-01-01-02-define-secrets-and-variables.md)** — define the plaintext variables (non-sensitive configuration) and the encrypted secrets (sensitive credentials, encrypted at rest) for the single environment in the Blitzy dashboard.
+3. **[STORY-01-01-03 — Attach Environments & Validate Build](FEATURE-01-01/STORY-01-01-03-attach-environments-and-validate-build.md)** — attach the single environment to the project and validate it with a test build that exits 0.
 
 ## Dependencies
 
@@ -58,10 +58,10 @@ This feature is delivered through three stories. Each link is relative to this f
 ## Definition of Done
 
 - [ ] All 3 stories (STORY-01-01-01, STORY-01-01-02, STORY-01-01-03) are complete.
-- [ ] The three Blitzy environments — Dev, Staging, and Prod — are created per <https://docs.blitzy.com/administration/environments>.
-- [ ] Plaintext variables (non-sensitive configuration) and encrypted secrets (sensitive credentials, encrypted at rest and never written in plaintext) are defined for each of the three environments.
-- [ ] Each of the three environments is attached to the project.
-- [ ] Each environment is validated with a test build that exits 0.
-- [ ] The Node `>=18` runtime floor and the Next.js-App-Router-on-Vercel target are recorded in each environment's build and run instructions.
+- [ ] The single Blitzy environment is manually configured per <https://docs.blitzy.com/administration/environments> (informational only — Blitzy cannot create environments).
+- [ ] Plaintext variables (non-sensitive configuration) and encrypted secrets (sensitive credentials, encrypted at rest and never written in plaintext) are defined for the single environment.
+- [ ] The single environment is attached to the project.
+- [ ] The single environment is validated with a test build that exits 0.
+- [ ] The Node `>=20.20.2` application runtime floor (the Apify actor keeps its own `>=18`) and the Next.js-App-Router-on-Vercel target are recorded in the environment's copy-paste build and run instructions.
 - [ ] No prohibited vague quality term appears in any measurable statement; every such statement names a concrete pass/fail condition.
-- [ ] **Testing:** a test build on each of the three environments exits 0, validating the environment before the dependent features (FEATURE-01-02, FEATURE-01-03) and epics (EPIC-02 through EPIC-06) proceed.
+- [ ] **Testing:** a test build on the single Blitzy environment exits 0, validating the environment before the dependent features (FEATURE-01-02, FEATURE-01-03) and epics (EPIC-02 through EPIC-06) proceed.
