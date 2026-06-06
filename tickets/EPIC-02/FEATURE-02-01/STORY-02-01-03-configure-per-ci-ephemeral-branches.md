@@ -18,13 +18,13 @@ This is the third story of FEATURE-02-01. It documents how CI runs against the s
   - **GitHub Actions** — supplies the CI runners and the encrypted secrets. The runner reads the `dev-qa` branch connection strings (stored as **encrypted secrets** per the environments reference), exports the pooled `DATABASE_URL` to the test job, and applies migrations through the unpooled `DATABASE_URL_UNPOOLED`.
 - **Encrypted secret.** The `dev-qa` branch's pooled `DATABASE_URL` and unpooled `DATABASE_URL_UNPOOLED` are stored as **encrypted secrets** per <https://docs.blitzy.com/administration/environments>; they are never stored as plaintext variables and never written into a workflow body.
 - **Engine inheritance.** The `dev-qa` branch is a copy-on-write clone of the `production` branch, so it inherits **PostgreSQL 15+** from production — the floor required by the `valuation` table's `UNIQUE NULLS NOT DISTINCT (variation_id, grade_id, window_days, cost_basis)` constraint, which any Postgres server below 15 rejects.
-- **Source of the parent and secrets.** The protected `production` parent branch, the Neon project API key, and the pooled and unpooled connection strings are provisioned and stored as encrypted secrets in [STORY-02-01-01](STORY-02-01-01-provision-neon-project-and-production-branch.md); this story reads them and documents how CI targets the shared `dev-qa` branch rather than duplicating those provisioning steps.
+- **Source of the parent and secrets.** The protected `production` parent branch and the pooled and unpooled connection strings are provisioned and stored as encrypted secrets in [STORY-02-01-01](STORY-02-01-01-provision-neon-project-and-production-branch.md); this story reads only the `dev-qa` branch's encrypted `DATABASE_URL` / `DATABASE_URL_UNPOOLED` and documents how CI targets the shared `dev-qa` branch rather than duplicating those provisioning steps. CI requires no Neon project API key — it consumes the static `dev-qa` connection strings only.
 
 ### Platforms and access required
 
 | Platform | Access required | Purpose in STORY-02-01-03 |
 |----------|-----------------|---------------------------|
-| Neon | Project API key; the protected `production` parent branch and the long-lived `dev-qa` branch | Run CI against the shared `dev-qa` branch (no branch is created or torn down for each run) |
+| Neon | The protected `production` parent branch and the long-lived `dev-qa` branch; the `dev-qa` pooled `DATABASE_URL` and unpooled `DATABASE_URL_UNPOOLED` | Run CI against the shared `dev-qa` branch using the static `dev-qa` connection strings (no Neon project API key is needed; no branch is created or torn down for each run) |
 | GitHub Actions | CI runners; encrypted secrets holding the `dev-qa` branch pooled `DATABASE_URL` and unpooled `DATABASE_URL_UNPOOLED` | Export the `dev-qa` pooled `DATABASE_URL` to the test job, apply migrations through the unpooled `DATABASE_URL_UNPOOLED`, and run migrations and tests |
 
 ### Step-by-step configuration
@@ -41,7 +41,7 @@ This is the third story of FEATURE-02-01. It documents how CI runs against the s
 2. **(valid-output)** **Given** a CI run finishes (pass or fail), **When** the run ends, **Then** the shared `dev-qa` branch is left intact (no separate branch existed for that run to delete) and remains available for the next run.
 3. **(error-handling)** **Given** the `dev-qa` connection is missing or misconfigured, **When** the CI run starts, **Then** it fails with a named error and 0 integration tests run.
 4. **(edge-case)** **Given** two CI runs execute in parallel, **When** each connects to its database, **Then** both connect to the same shared `dev-qa` branch and therefore share its state — per-run isolation is intentionally traded away (see the lost-isolation note).
-5. **(input-validation)** **Given** the Neon project API key is absent, **When** the database step runs, **Then** the job exits non-zero with a named authentication error and 0 connections are opened.
+5. **(input-validation)** **Given** the `dev-qa` pooled `DATABASE_URL` or the unpooled `DATABASE_URL_UNPOOLED` is unset or empty, **When** the database step runs, **Then** the job exits non-zero with a named missing-variable error identifying the absent connection string and 0 connections are opened.
 6. **(error-handling)** **Given** the `dev-qa` connection string is misconfigured, **When** the failure is detected, **Then** the run aborts with the named error, 0 integration tests run, and the test job's `DATABASE_URL` is never set to the `production`-branch connection string.
 7. **(valid-output)** **Given** a CI run is in progress, **When** it applies migrations, **Then** they are applied to the shared `dev-qa` branch through the unpooled `DATABASE_URL_UNPOOLED`, and the test suite reads the pooled `DATABASE_URL`.
 8. **(edge-case)** **Given** the `dev-qa` branch is a copy-on-write clone of the `production` branch, **When** migrations create the `valuation` table with its `UNIQUE NULLS NOT DISTINCT` constraint, **Then** the branch reports a PostgreSQL server version of 15 or higher and the constraint is created with exit code 0 — a server below 15 rejects the constraint.
@@ -65,7 +65,7 @@ This is the third story of FEATURE-02-01. It documents how CI runs against the s
 
 ### Upstream (must be complete first)
 
-- **[STORY-02-01-01 — Provision the Neon Project & Production Branch](STORY-02-01-01-provision-neon-project-and-production-branch.md):** supplies the protected `production` parent branch that the shared `dev-qa` branch clones from, plus the Neon project API key and connection strings stored as encrypted secrets that this story reads.
+- **[STORY-02-01-01 — Provision the Neon Project & Production Branch](STORY-02-01-01-provision-neon-project-and-production-branch.md):** supplies the protected `production` parent branch that the shared `dev-qa` branch clones from, plus the `dev-qa` connection strings stored as encrypted secrets that this story reads.
 - **`EPIC-01` — Environment & Configuration Foundation:** supplies the single Blitzy environment and the secrets baseline into which the Neon connection strings are stored as encrypted secrets. Cited cross-epic by identifier.
 
 ### Downstream (informational — not a build prerequisite of this story)

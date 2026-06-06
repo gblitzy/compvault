@@ -64,7 +64,7 @@ The `migrate.yml` workflow applies migrations using the **unpooled** `DATABASE_U
 ## Definition of Done
 
 - [ ] `.github/workflows/migrate.yml` exists and is triggered on pull requests and `workflow_dispatch` with no cron schedule.
-- [ ] The workflow applies the generated migration set on a Neon branch using the unpooled `DATABASE_URL_UNPOOLED` and never the pooled `DATABASE_URL` (mixing the pooled and unpooled connections breaks migrations).
+- [ ] The workflow applies the generated migration set on the shared `dev-qa` Neon branch using the unpooled `DATABASE_URL_UNPOOLED` and never the pooled `DATABASE_URL` (mixing the pooled and unpooled connections breaks migrations).
 - [ ] A migration that fails to apply exits non-zero and is reported as a failed status check.
 - [ ] The rehearsal runs against the shared `dev-qa` branch; no per-run branch is created or torn down, and the `dev-qa` branch is left intact after the run.
 - [ ] An absent `DATABASE_URL_UNPOOLED` secret fails the workflow with a named missing-secret error and applies 0 migrations.

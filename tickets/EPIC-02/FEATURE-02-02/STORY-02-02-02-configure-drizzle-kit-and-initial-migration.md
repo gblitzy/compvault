@@ -6,11 +6,11 @@ This is the second of the three stories of FEATURE-02-02. It configures `drizzle
 
 ## User Story
 
-> As a Database Engineer, I want drizzle-kit configured against the unpooled connection and an initial migration generated, so that the schema can be applied to any Neon branch reproducibly.
+> As a Database Engineer, I want drizzle-kit configured against the unpooled connection and an initial migration generated, so that the schema can be applied reproducibly to the shared `dev-qa` Neon branch.
 
 ## Connection & Environment Note
 
-All migration commands (`drizzle-kit generate` and `drizzle-kit migrate`) and `drizzle.config.ts` read the unpooled `DATABASE_URL_UNPOOLED` connection and never the pooled `DATABASE_URL` — mixing the pooled and unpooled connections breaks migrations, and this is the documented failure mode. The unpooled secret and the Neon branch to apply the migration to are provisioned per [FEATURE-02-01 — Neon Project & Branching Topology](../FEATURE-02-01-neon-project-and-branching-topology.md) (see [`STORY-02-01-04`](../FEATURE-02-01/STORY-02-01-04-document-pooled-and-unpooled-connections.md)); the target Neon database runs **PostgreSQL 15+** because `valuation`'s `UNIQUE NULLS NOT DISTINCT (variation_id, grade_id, window_days, cost_basis)` is rejected on any server below version 15.
+All migration commands (`drizzle-kit generate` and `drizzle-kit migrate`) and `drizzle.config.ts` read the unpooled `DATABASE_URL_UNPOOLED` connection and never the pooled `DATABASE_URL` — mixing the pooled and unpooled connections breaks migrations, and this is the documented failure mode. The unpooled secret and the shared `dev-qa` Neon branch to apply the migration to are provisioned per [FEATURE-02-01 — Neon Project & Branching Topology](../FEATURE-02-01-neon-project-and-branching-topology.md) (see [`STORY-02-01-04`](../FEATURE-02-01/STORY-02-01-04-document-pooled-and-unpooled-connections.md)); the target Neon database runs **PostgreSQL 15+** because `valuation`'s `UNIQUE NULLS NOT DISTINCT (variation_id, grade_id, window_days, cost_basis)` is rejected on any server below version 15.
 
 ## Acceptance Criteria
 
@@ -46,12 +46,12 @@ All migration commands (`drizzle-kit generate` and `drizzle-kit migrate`) and `d
 
 - **[`STORY-02-02-01` — Author the Drizzle Schema](STORY-02-02-01-author-drizzle-schema.md):** provides the `db/schema.ts` the migration is generated from.
 - **[`STORY-02-01-04` — Document Pooled & Unpooled Connections](../FEATURE-02-01/STORY-02-01-04-document-pooled-and-unpooled-connections.md):** documents the pooled-vs-unpooled split, including the unpooled `DATABASE_URL_UNPOOLED` this story consumes.
-- **[`STORY-02-01-01` — Provision Neon Project & Production Branch](../FEATURE-02-01/STORY-02-01-01-provision-neon-project-and-production-branch.md):** provisions the Neon branch the migration is applied to and the encrypted connection secrets.
+- **[`STORY-02-01-01` — Provision Neon Project & Production Branch](../FEATURE-02-01/STORY-02-01-01-provision-neon-project-and-production-branch.md):** provisions the Neon project and the protected `production` branch from which the shared `dev-qa` Neon branch — the branch this migration is applied to — is cloned, plus the encrypted connection secrets.
 - `EPIC-01` provides the encrypted-secrets baseline that stores `DATABASE_URL_UNPOOLED` (cited by identifier).
 
 ### Downstream (informational — not a build prerequisite of this story)
 
-- **[`STORY-02-02-03` — Create the Migration Rehearsal Workflow](STORY-02-02-03-create-migration-rehearsal-workflow.md):** its `migrate.yml` workflow applies this migration set on a Neon branch through the unpooled connection.
+- **[`STORY-02-02-03` — Create the Migration Rehearsal Workflow](STORY-02-02-03-create-migration-rehearsal-workflow.md):** its `migrate.yml` workflow applies this migration set on the shared `dev-qa` Neon branch through the unpooled connection.
 - `EPIC-06` integration tests run this migration set on the shared `dev-qa` Neon branch before each suite (cited by identifier).
 
 ## Story Estimation Guidance

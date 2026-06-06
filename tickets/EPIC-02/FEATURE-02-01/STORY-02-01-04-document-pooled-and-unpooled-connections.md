@@ -67,7 +67,7 @@ This is the fourth and final story of FEATURE-02-01. It documents the pooled-ver
 ### Upstream (must be complete first)
 
 - **[STORY-02-01-01 — Provision the Neon Project & Production Branch](STORY-02-01-01-provision-neon-project-and-production-branch.md):** provisions the pooled and unpooled connection strings and stores them as encrypted secrets; this story reads them and documents the usage rule.
-- **`EPIC-01` — Environment & Configuration Foundation:** supplies the Blitzy environments and the secrets baseline into which both connection strings are stored. Cited cross-epic by identifier.
+- **`EPIC-01` — Environment & Configuration Foundation:** supplies the single Blitzy environment and the secrets baseline into which both connection strings are stored. Cited cross-epic by identifier.
 
 ### Downstream (informational — not a build prerequisite of this story)
 

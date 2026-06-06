@@ -18,14 +18,14 @@ This is the second story of FEATURE-02-01. It documents how every Vercel Preview
   - **Vercel + GitHub** — the Vercel Preview scope applies to all non-production branches and pull requests, and supplies each preview deployment's pooled `DATABASE_URL` / unpooled `DATABASE_URL_UNPOOLED` from the `dev-qa` branch connection strings, so the preview app reads the shared `dev-qa` branch and never the `production` branch.
 - **Encrypted secret.** The `dev-qa` branch's pooled `DATABASE_URL` and unpooled `DATABASE_URL_UNPOOLED` are stored as **encrypted secrets** per <https://docs.blitzy.com/administration/environments>; they are never stored as plaintext variables and never written into a workflow body.
 - **Engine inheritance.** The `dev-qa` branch is a copy-on-write clone of the `production` branch, so it inherits **PostgreSQL 15+** from production — the floor required by the `valuation` table's `UNIQUE NULLS NOT DISTINCT (variation_id, grade_id, window_days, cost_basis)` constraint, which any Postgres server below 15 rejects.
-- **Source of the parent and secrets.** The protected `production` parent branch, the Neon project API key, and the pooled and unpooled connection strings are provisioned and stored as encrypted secrets in [STORY-02-01-01](STORY-02-01-01-provision-neon-project-and-production-branch.md); this story reads them and documents how previews target the shared `dev-qa` branch rather than duplicating those provisioning steps.
+- **Source of the parent and secrets.** The protected `production` parent branch and the pooled and unpooled connection strings are provisioned and stored as encrypted secrets in [STORY-02-01-01](STORY-02-01-01-provision-neon-project-and-production-branch.md); this story reads only the `dev-qa` branch's encrypted `DATABASE_URL` / `DATABASE_URL_UNPOOLED` and documents how previews target the shared `dev-qa` branch rather than duplicating those provisioning steps. Preview deployments require no Neon project API key — they consume the static `dev-qa` connection strings only.
 
 ### Platforms and access required
 
 | Platform | Access required | Purpose in STORY-02-01-02 |
 |----------|-----------------|---------------------------|
 | Blitzy | The single Blitzy environment; plaintext variables and encrypted secrets | Confirm the `dev-qa` branch connection strings are stored as encrypted secrets per <https://docs.blitzy.com/administration/environments> |
-| Neon | Project API key; the protected `production` parent branch and the long-lived `dev-qa` branch | Point every preview deployment at the shared `dev-qa` branch (no branch is created or deleted for each pull request) |
+| Neon | The protected `production` parent branch and the long-lived `dev-qa` branch; the `dev-qa` pooled `DATABASE_URL` and unpooled `DATABASE_URL_UNPOOLED` | Point every preview deployment at the shared `dev-qa` branch using the static `dev-qa` connection strings (no Neon project API key is needed; no branch is created or deleted for each pull request) |
 | Vercel + GitHub | The Vercel Preview scope (all non-production branches and pull requests) | Set each preview deployment's `DATABASE_URL` / `DATABASE_URL_UNPOOLED` to the `dev-qa` branch connection strings |
 
 ### Step-by-step configuration
@@ -42,7 +42,7 @@ This is the second story of FEATURE-02-01. It documents how every Vercel Preview
 2. **(valid-output)** **Given** a pull request is closed or merged, **When** cleanup runs, **Then** the shared `dev-qa` branch is left intact (no separate branch existed for that pull request to delete) and remains available for the next preview.
 3. **(error-handling)** **Given** the `dev-qa` connection is missing or misconfigured, **When** the PR pipeline runs, **Then** the failure is surfaced as a failed status check (not silently ignored) and the PR is not marked deploy-ready.
 4. **(edge-case)** **Given** two open pull requests, **When** both preview deployments run, **Then** both connect to the same shared `dev-qa` branch and therefore share its state — per-run isolation is intentionally traded away (see the lost-isolation note).
-5. **(input-validation)** **Given** the Neon project API key is absent, **When** the integration attempts to read the `dev-qa` connection, **Then** it fails with a named authentication error and 0 connections are opened.
+5. **(input-validation)** **Given** the `dev-qa` pooled `DATABASE_URL` or unpooled `DATABASE_URL_UNPOOLED` is unset or empty, **When** the preview deployment attempts to connect, **Then** it fails with a named missing-variable error identifying the absent connection string and 0 connections are opened.
 6. **(edge-case)** **Given** a previously closed pull request is re-opened, **When** its preview deployment runs, **Then** it connects to the same shared `dev-qa` branch deterministically (there is never a separate branch for that pull request to reuse or recreate).
 7. **(valid-output)** **Given** a preview deployment is in use, **When** it queries its database, **Then** every read resolves against the shared `dev-qa` branch and 0 reads resolve against the `production` branch.
 
@@ -65,7 +65,7 @@ This is the second story of FEATURE-02-01. It documents how every Vercel Preview
 
 ### Upstream (must be complete first)
 
-- **[STORY-02-01-01 — Provision the Neon Project & Production Branch](STORY-02-01-01-provision-neon-project-and-production-branch.md):** supplies the protected `production` parent branch that the shared `dev-qa` branch clones from, plus the Neon project API key and connection strings stored as encrypted secrets that this story reads.
+- **[STORY-02-01-01 — Provision the Neon Project & Production Branch](STORY-02-01-01-provision-neon-project-and-production-branch.md):** supplies the protected `production` parent branch that the shared `dev-qa` branch clones from, plus the `dev-qa` connection strings stored as encrypted secrets that this story reads.
 - **`EPIC-01` — Environment & Configuration Foundation:** supplies the single Blitzy environment and the secrets baseline into which the Neon connection strings are stored as encrypted secrets. Cited cross-epic by identifier.
 
 ### Downstream / Related (informational — not a build prerequisite of this story)
