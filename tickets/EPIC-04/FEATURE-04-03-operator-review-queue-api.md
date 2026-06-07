@@ -31,7 +31,7 @@ This feature is delivered through two stories. Each link is relative to this fil
 ### Downstream (informational — not a build prerequisite of this feature)
 
 - **EPIC-05 — Frontend User Interface:** the operator review-queue workbench (`STORY-05-03-03`) consumes the list, resolve, and counterpart-override endpoints this feature exposes.
-- **EPIC-06 — Testing & CI/CD Quality Gates:** `STORY-06-02-02` integration-tests these API routes against a per-CI Neon branch, targeting an API coverage floor of **≥75%**.
+- **EPIC-06 — Testing & CI/CD Quality Gates:** `STORY-06-02-02` integration-tests these API routes against the `dev-qa` Neon branch, targeting an API coverage floor of **≥75%**. Because previews and CI now share the single `dev-qa` branch, per-run database isolation is lost — concurrent CI runs and open PRs share `dev-qa` state. This is the inherent consequence of the two-environment model. See the lost-isolation note in `STORY-04-01-01` and EPIC-02.
 
 ## Definition of Done
 
@@ -45,4 +45,4 @@ This feature is delivered through two stories. Each link is relative to this fil
 - [ ] Every endpoint threads the operator `userId` from the `getUserId()` seam (v1 = the single seeded operator) and gates the review and override actions to that operator.
 - [ ] No request handler issues an LLM call, and every external data source is an official API.
 - [ ] No prohibited vague quality term appears in any acceptance-criteria-like statement; every such statement names a measurable pass/fail condition.
-- [ ] **Testing:** API integration tests for the list, resolve, and counterpart-override routes pass against a per-CI Neon branch and meet the **≥75%** API coverage target tracked in EPIC-06 (`STORY-06-02-02`).
+- [ ] **Testing:** API integration tests for the list, resolve, and counterpart-override routes pass against the `dev-qa` Neon branch and meet the **≥75%** API coverage target tracked in EPIC-06 (`STORY-06-02-02`).

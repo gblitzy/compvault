@@ -28,7 +28,7 @@ The data partition is the move that makes this work: catalog, `sale_observation`
 - [ ] Add a shared test/lint check that fails any route missing the `userId` thread, so a non-threaded route does not pass CI (@qa-engineer)
 - [ ] Document and enforce the no-LLM-in-handlers rule — LLM-assisted extraction stays in the EPIC-03 batch jobs (@tech-lead)
 - [ ] Document the pooled-connection rule — every handler reads the pooled `DATABASE_URL` and never the unpooled `DATABASE_URL_UNPOOLED` (@backend-engineer)
-- [ ] Author API integration tests against a per-CI Neon branch covering seam resolution, the GLOBAL-vs-personal partition, and concurrent resolution (@qa-engineer)
+- [ ] Author API integration tests against the `dev-qa` Neon branch covering seam resolution, the GLOBAL-vs-personal partition, and concurrent resolution (@qa-engineer)
 
 ## Edge Cases
 
@@ -50,7 +50,7 @@ The data partition is the move that makes this work: catalog, `sale_observation`
 - **[`STORY-04-01-03 — Implement Query-Parameter Validation`](STORY-04-01-03-implement-query-parameter-validation.md):** wraps this scaffolding with query-parameter input validation that runs before any data read.
 - **[FEATURE-04-02 — Search & Detail Endpoints](../FEATURE-04-02-search-and-detail-endpoints.md)** and **[FEATURE-04-03 — Operator Review-Queue API](../FEATURE-04-03-operator-review-queue-api.md):** build their handlers on this `userId`-threaded scaffolding.
 - **[EPIC-05 — Frontend User Interface](../../EPIC-05-frontend-user-interface.md):** consumes the endpoints served by this scaffolding.
-- **EPIC-06 `STORY-06-02-02`:** integration-tests these API routes against a per-CI Neon branch at an API coverage floor of **≥75%**.
+- **EPIC-06 `STORY-06-02-02`:** integration-tests these API routes against the `dev-qa` Neon branch at an API coverage floor of **≥75%**. Because previews and CI now share the single `dev-qa` branch, per-run database isolation is lost — concurrent CI runs and open PRs share `dev-qa` state. This is the inherent consequence of the two-environment model. See the lost-isolation note in `STORY-04-01-01` and EPIC-02.
 
 ### Parent feature
 
@@ -74,4 +74,4 @@ The data partition is the move that makes this work: catalog, `sale_observation`
 - [ ] No request handler contains an LLM call (LLM-assisted extraction stays in the EPIC-03 batch jobs), and every external data source is an official API.
 - [ ] Every handler reads the pooled `DATABASE_URL` and never the unpooled `DATABASE_URL_UNPOOLED` (reserved for DDL and migrations).
 - [ ] No prohibited vague quality term appears in any acceptance-criteria statement; every statement names a measurable pass/fail condition (the seam name `getUserId()`, "before any data access", exact table names, "GLOBAL reads are not filtered by `userId`", or an exact HTTP status).
-- [ ] **Testing:** API integration tests against a per-CI Neon branch pass with a ≥75% coverage target.
+- [ ] **Testing:** API integration tests against the `dev-qa` Neon branch pass with a ≥75% coverage target.

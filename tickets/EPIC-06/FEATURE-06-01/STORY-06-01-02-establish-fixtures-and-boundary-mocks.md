@@ -2,7 +2,7 @@
 
 *Parent feature: [FEATURE-06-01 — Test Harness & Environment Access](../FEATURE-06-01-test-harness-and-environment-access.md) · Parent epic: [EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md)*
 
-This is the second story of FEATURE-06-01. It establishes the shared `__fixtures__` directory and the boundary mocks that the single Vitest harness from [STORY-06-01-01](STORY-06-01-01-configure-vitest-and-env-access.md) loads, so that every later EPIC-06 suite runs offline against deterministic inputs. The per-CI Neon-branch wiring is the concern of the sibling story [STORY-06-01-03](STORY-06-01-03-wire-integration-tests-to-neon-branch.md); this story scopes only the fixtures and the network/proxy and LLM boundary mocks. The eBay sold-listing HTML fixtures mirror the cards and helper field shapes defined by the read-only actor `apify/src/main.js`.
+This is the second story of FEATURE-06-01. It establishes the shared `__fixtures__` directory and the boundary mocks that the single Vitest harness from [STORY-06-01-01](STORY-06-01-01-configure-vitest-and-env-access.md) loads, so that every later EPIC-06 suite runs offline against deterministic inputs. The shared `dev-qa` Neon-branch wiring is the concern of the sibling story [STORY-06-01-03](STORY-06-01-03-wire-integration-tests-to-neon-branch.md); this story scopes only the fixtures and the network/proxy and LLM boundary mocks. The eBay sold-listing HTML fixtures mirror the cards and helper field shapes defined by the read-only actor `apify/src/main.js`.
 
 ## User Story
 
@@ -42,7 +42,7 @@ As a **QA Engineer**, I want shared `__fixtures__` and boundary mocks that stub 
 
 ### Downstream (informational — not a build prerequisite of this story)
 
-- **[STORY-06-01-03 — Wire Integration Tests to a Neon Branch](STORY-06-01-03-wire-integration-tests-to-neon-branch.md):** the sibling story that wires integration tests to a per-CI Neon branch on the same harness.
+- **[STORY-06-01-03 — Wire Integration Tests to the Shared dev-qa Neon Branch](STORY-06-01-03-wire-integration-tests-to-neon-branch.md):** the sibling story that wires integration tests to the shared `dev-qa` Neon branch on the same harness.
 - **FEATURE-06-02 — Unit & Integration Suites:** the suites that consume these fixtures and boundary mocks (for example the Apify helper tests) are authored there, not in this story.
 
 ## Story Estimation Guidance

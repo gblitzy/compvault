@@ -78,7 +78,7 @@ The same response also carries the **digital↔physical counterpart** read block
 - [ ] Map a `variation_id` (or `card_id`) that matches no row to HTTP 404 with a named `error` field and no sales rows (@backend-engineer)
 - [ ] Resolve the `counterpart` block override-first — read `counterpart_override` at `link_level = 'variation'` then `link_level = 'card'` (`source = 'override'`), else compute via schema Example Query 4 then the Example Query 5 card-level fallback (`source = 'computed'`) — and populate `counterpart_value` (the counterpart's `window_days = 90` `valuation.median`), the `ratio` (`physical_value ÷ digital_value`), `direction`, and `no_physical_counterpart` (`true` for a digital-exclusive parallel) (@backend-engineer)
 - [ ] Thread the operator `userId` from the `getUserId()` seam and keep the `sale_observation`, `counterpart_override`, and `valuation` reads GLOBAL — scoped by `variation_id` / `card_id`, never filtered by `userId` (@backend-engineer)
-- [ ] Author API integration tests against a per-CI Neon branch covering the row fields, the `sale_date DESC` ordering, the `excluded_from_comps = TRUE` exclusion, the HTTP 404 no-row path, the HTTP 400 malformed-id path, the empty-table HTTP 200 path, the computed-vs-override counterpart precedence, and the digital-exclusive `no_physical_counterpart` path (@qa-engineer)
+- [ ] Author API integration tests against the `dev-qa` Neon branch covering the row fields, the `sale_date DESC` ordering, the `excluded_from_comps = TRUE` exclusion, the HTTP 404 no-row path, the HTTP 400 malformed-id path, the empty-table HTTP 200 path, the computed-vs-override counterpart precedence, and the digital-exclusive `no_physical_counterpart` path (@qa-engineer)
 - [ ] Confirm the request handler reads official data sources only, issues zero LLM calls, and reads the pooled `DATABASE_URL` rather than the unpooled `DATABASE_URL_UNPOOLED` (@tech-lead)
 
 ## Edge Cases
@@ -101,7 +101,7 @@ The same response also carries the **digital↔physical counterpart** read block
 
 - **[EPIC-05 — Frontend User Interface](../../EPIC-05-frontend-user-interface.md):** the card-detail page, its recent-sales table, and the digital↔physical counterpart panel (`STORY-05-03-01`) consume this endpoint.
 - **[STORY-04-03-02 — Implement Counterpart-Override Endpoint](../FEATURE-04-03/STORY-04-03-02-implement-counterpart-override-endpoint.md):** the operator write/edit path that creates the `counterpart_override` rows this read contract resolves override-first; this story is the read side, `STORY-04-03-02` is the write side.
-- **[EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md):** `STORY-06-02-02` integration-tests these API routes against a per-CI Neon branch at an API coverage floor of **≥75%**.
+- **[EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md):** `STORY-06-02-02` integration-tests these API routes against the `dev-qa` Neon branch at an API coverage floor of **≥75%**. Because previews and CI now share the single `dev-qa` branch, per-run database isolation is lost — concurrent CI runs and open PRs share `dev-qa` state. This is the inherent consequence of the two-environment model. See the lost-isolation note in `STORY-04-01-01` and EPIC-02.
 
 ### Parent feature
 
@@ -126,4 +126,4 @@ The same response also carries the **digital↔physical counterpart** read block
 - [ ] The `counterpart` block resolves override-first (`counterpart_override` at `link_level` `variation` then `card`, `source = 'override'`) and otherwise computed (schema Example Query 4 then the Example Query 5 fallback, `source = 'computed'`), returning `counterpart_value` (the counterpart's `window_days = 90` `valuation.median`), `ratio` (`physical_value ÷ digital_value`), `direction`, and `no_physical_counterpart`; a digital-exclusive parallel sets `no_physical_counterpart = true` with the counterpart fields `null`.
 - [ ] The handler reads the pooled `DATABASE_URL` (never `DATABASE_URL_UNPOOLED`), threads `userId` from `getUserId()`, keeps the `sale_observation` read GLOBAL (scoped by `variation_id`, not filtered by `userId`), and issues no LLM call in the request path.
 - [ ] No prohibited vague quality term appears in any acceptance-criteria statement; every statement names a measurable pass/fail condition (an HTTP status code, an exact column or error-field name, the `sale_date DESC` ordering, or the `excluded_from_comps = TRUE` predicate).
-- [ ] **Testing:** API integration tests against a per-CI Neon branch pass with a ≥75% coverage target.
+- [ ] **Testing:** API integration tests against the `dev-qa` Neon branch pass with a ≥75% coverage target.
