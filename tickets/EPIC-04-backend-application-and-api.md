@@ -14,14 +14,14 @@ The backend is a Next.js App Router application deployed on Vercel, where every 
 
 | Platform | Access required | Purpose in EPIC-04 |
 |----------|-----------------|--------------------|
-| Blitzy | Dev/Staging/Prod environments; plaintext variables and encrypted secrets | Store the pooled `DATABASE_URL` and the API runtime secrets per the Blitzy environments reference |
-| Vercel | Project access; per-scope environment variables; serverless runtime and deployments | Build and host the Next.js App Router API; expose the pooled `DATABASE_URL` to each route at runtime |
+| Blitzy | single environment (manual build/run + hand-entered secrets); plaintext variables and encrypted secrets | Store the pooled `DATABASE_URL` and the API runtime secrets in the single Blitzy environment per the Blitzy environments reference |
+| Vercel | Project access; Production and Preview (= dev/qa) scope environment variables; serverless runtime and deployments | Build and host the Next.js App Router API; expose the pooled `DATABASE_URL` to each route at runtime via the Production scope (`main` → Neon `production`) and the Preview scope (= dev/qa, all non-production branches/PRs → Neon `dev-qa`) |
 
 ### Step-by-step configuration (complete before endpoint work begins)
 
-1. Create the Blitzy environments and store the pooled `DATABASE_URL` plus the API runtime secrets as encrypted secrets, with non-sensitive values stored as plaintext, per <https://docs.blitzy.com/administration/environments>.
-2. Connect the repository to Vercel so the Next.js App Router API builds and deploys, with the production deployment on `main`.
-3. Set the Vercel project environment variables for each scope so every API route resolves the pooled `DATABASE_URL` at runtime and never the unpooled `DATABASE_URL_UNPOOLED`.
+1. Configure the single Blitzy environment and store the pooled `DATABASE_URL` plus the API runtime secrets as encrypted secrets, with non-sensitive values stored as plaintext, per <https://docs.blitzy.com/administration/environments> (informational only — Blitzy cannot create environments).
+2. Connect the repository to Vercel so the Next.js App Router API builds and deploys, with the production deployment on `main` and Preview (dev/qa) deployments on all non-production branches/PRs.
+3. Set the Vercel project environment variables for the Production scope (`main` → Neon `production`) and the Preview scope (= dev/qa, all non-production branches/PRs → Neon `dev-qa`) so every API route resolves the pooled `DATABASE_URL` at runtime and never the unpooled `DATABASE_URL_UNPOOLED`.
 4. Confirm the EPIC-02 access layer — the pooled Neon client and the `getUserId()` seam from `STORY-02-03-02` — and the EPIC-03 ingested sales are reachable before any endpoint is implemented.
 5. Validate the wiring with a single health route that opens a pooled Neon connection on a Vercel deployment, confirming the environment is provisioned before the first endpoint is authored.
 
@@ -44,7 +44,7 @@ This epic is delivered through three features. Each link is relative to this fil
 ### Downstream (informational — not a build prerequisite of this epic)
 
 - **EPIC-05 — Frontend User Interface:** consumes these endpoints to render search, the two-column results, the detail price-history chart, and the operator review-queue workbench.
-- **EPIC-06 — Testing & CI/CD Quality Gates:** `STORY-06-02-02` integration-tests these API routes against a per-CI Neon branch, targeting an API coverage floor of **≥75%**.
+- **EPIC-06 — Testing & CI/CD Quality Gates:** `STORY-06-02-02` integration-tests these API routes against the shared `dev-qa` Neon branch, targeting an API coverage floor of **≥75%**.
 
 ## Definition of Done
 
@@ -58,4 +58,4 @@ This epic is delivered through three features. Each link is relative to this fil
 - [ ] The review-queue list and resolve endpoints and the operator counterpart-override endpoint are implemented against the `review_queue` and `counterpart_override` tables.
 - [ ] Every endpoint reads the pooled `DATABASE_URL`; no endpoint reads the unpooled `DATABASE_URL_UNPOOLED`.
 - [ ] No request handler issues an LLM call (LLM-assisted extraction stays in the EPIC-03 batch jobs), and every external data source is an official API.
-- [ ] **Testing:** API integration tests pass against a per-CI Neon branch and meet the **≥75%** API coverage target tracked in EPIC-06 (`STORY-06-02-02`).
+- [ ] **Testing:** API integration tests pass against the shared `dev-qa` Neon branch and meet the **≥75%** API coverage target tracked in EPIC-06 (`STORY-06-02-02`).

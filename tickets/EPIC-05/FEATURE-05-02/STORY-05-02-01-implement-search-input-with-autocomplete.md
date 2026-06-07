@@ -10,7 +10,7 @@ This is the **first of the three** stories in FEATURE-05-02 (Search & Results Ex
 
 ## Environment Access
 
-Environment access and preview deployment for this view are configured once in [FEATURE-05-01 — Frontend Foundation & Environment Access](../FEATURE-05-01-frontend-foundation-and-environment-access.md) per the canonical Blitzy environments reference <https://docs.blitzy.com/administration/environments>; this search input additionally depends on the EPIC-04 character-search + autocomplete endpoint `GET /api/characters/search?q=<term>&mode=autocomplete` ([STORY-04-02-01](../../EPIC-04/FEATURE-04-02/STORY-04-02-01-implement-character-search-autocomplete.md)) to return the `suggestions[]` array it renders, each entry carrying `character_id`, `name`, and `alias_matched`. The full environment-configuration procedure is not duplicated here.
+Environment access and the Vercel Preview (= dev/qa) deployment for this view are configured once in [FEATURE-05-01 — Frontend Foundation & Environment Access](../FEATURE-05-01-frontend-foundation-and-environment-access.md) per the canonical Blitzy environments reference <https://docs.blitzy.com/administration/environments>; this search input additionally depends on the EPIC-04 character-search + autocomplete endpoint `GET /api/characters/search?q=<term>&mode=autocomplete` ([STORY-04-02-01](../../EPIC-04/FEATURE-04-02/STORY-04-02-01-implement-character-search-autocomplete.md)) to return the `suggestions[]` array it renders, each entry carrying `character_id`, `name`, and `alias_matched`. The full environment-configuration procedure is not duplicated here.
 
 ## Acceptance Criteria
 

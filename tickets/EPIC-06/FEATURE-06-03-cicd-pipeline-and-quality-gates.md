@@ -4,7 +4,7 @@
 
 ## Feature Summary
 
-This feature wires the CompVault test harness and suites into an automated GitHub Actions pipeline that gates every merge: a `ci.yml` workflow runs the TypeScript typecheck (`tsc --noEmit`), ESLint, and Vitest on every pull request, and merge-blocking gates reject any pull request whose line coverage falls below a named threshold, whose required secrets are absent, or that lacks an approving review — so regressions are caught before they reach `main`. The business value is a deterministic, automated quality bar that turns the harness and the suites into an enforced contract rather than an advisory checklist. Scope is limited to creating the CI workflow and the merge gates; it does **not** author the unit and integration suites (delivered by [FEATURE-06-02 — Unit & Integration Suites](FEATURE-06-02-unit-and-integration-suites.md)) or the Vitest harness, fixtures, and Neon-branch wiring (delivered by [FEATURE-06-01 — Test Harness & Environment Access](FEATURE-06-01-test-harness-and-environment-access.md)). Branch protection additionally requires a green `migrate.yml` status check, tying this gate to EPIC-02's migration-rehearsal workflow so no schema change merges into `main` without a successful migration run against a Neon branch.
+This feature wires the CompVault test harness and suites into an automated GitHub Actions pipeline that gates every merge: a `ci.yml` workflow runs the TypeScript typecheck (`tsc --noEmit`), ESLint, and Vitest on every pull request, and merge-blocking gates reject any pull request whose line coverage falls below a named threshold, whose required secrets are absent, or that lacks an approving review — so regressions are caught before they reach `main`. The business value is a deterministic, automated quality bar that turns the harness and the suites into an enforced contract rather than an advisory checklist. Scope is limited to creating the CI workflow and the merge gates; it does **not** author the unit and integration suites (delivered by [FEATURE-06-02 — Unit & Integration Suites](FEATURE-06-02-unit-and-integration-suites.md)) or the Vitest harness, fixtures, and Neon-branch wiring (delivered by [FEATURE-06-01 — Test Harness & Environment Access](FEATURE-06-01-test-harness-and-environment-access.md)). Branch protection additionally requires a green `migrate.yml` status check, tying this gate to EPIC-02's migration-rehearsal workflow so no schema change merges into `main` without a successful migration run against the shared `dev-qa` Neon branch.
 
 ## Environment Access & Configuration
 
@@ -13,7 +13,7 @@ The platform access this feature consumes is provisioned once in EPIC-06's envir
 - **GitHub Actions** — the CI runners that execute `ci.yml` on every pull request, plus the encrypted repository or organization secrets the workflow reads (for example the Neon test `DATABASE_URL`).
 - **Blitzy** — the environment and secret-storage layer, where non-sensitive values are held as plaintext variables and credentials are held as encrypted secrets per <https://docs.blitzy.com/administration/environments>.
 
-**Runtime floor:** the CI runner pins Node `>=18`, matching both the TypeScript application and the JavaScript Apify actor under test, so one runner toolchain exercises both targets.
+**Runtime floor:** the CI runner pins Node `>=20.20.2` — the TypeScript application floor declared in the root `package.json` `engines.node`. The JavaScript Apify actor under test keeps its own floor of Node `>=18` (from `apify/package.json`; its container image runs Node 20), which the runner's `>=20.20.2` satisfies, so one runner toolchain exercises both targets.
 
 ## User Stories Index
 
@@ -28,7 +28,7 @@ This feature is delivered through three stories. Each link is relative to this f
 ### Upstream (must be complete first)
 
 - **EPIC-01 — Environment & Configuration Foundation:** supplies the GitHub Actions encrypted secrets and the environment baseline the pipeline reads.
-- **[FEATURE-06-01 — Test Harness & Environment Access](FEATURE-06-01-test-harness-and-environment-access.md):** supplies the single Vitest configuration, the `__fixtures__`, the boundary mocks, and the per-CI Neon-branch wiring that `ci.yml` invokes.
+- **[FEATURE-06-01 — Test Harness & Environment Access](FEATURE-06-01-test-harness-and-environment-access.md):** supplies the single Vitest configuration, the `__fixtures__`, the boundary mocks, and the shared `dev-qa` Neon-branch wiring that `ci.yml` invokes.
 - **[FEATURE-06-02 — Unit & Integration Suites](FEATURE-06-02-unit-and-integration-suites.md):** supplies the unit, integration, and Apify-helper suites whose line coverage the gates measure.
 - **EPIC-02 — Database Platform & Schema (`STORY-02-02-03`):** supplies the `migrate.yml` migration-rehearsal workflow that branch protection requires to report a green status check before any merge to `main`.
 

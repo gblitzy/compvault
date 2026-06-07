@@ -8,7 +8,7 @@ EPIC-03 builds the CompVault data-ingestion pipeline: it makes the existing `eba
 
 All environment provisioning for this epic follows the canonical Blitzy environments reference: <https://docs.blitzy.com/administration/environments>. Non-sensitive values are stored as plaintext environment variables and credentials are stored as encrypted secrets, after which the environment is attached to the project. This step-by-step configuration is completed in full **before** any ingestion run executes.
 
-Ingestion runs the existing `ebay-sold-listings` Apify actor as the single sanctioned out-of-band scraping exception; the main application calls official data sources only and issues no scraping itself. The actor is invoked from the Apify Platform with an `APIFY_TOKEN`, its dataset results are persisted to the `raw_listing` table, and a GitHub Actions cron workflow (`ingest.yml`) drives the daily run. Because every ingestion write targets the database, this epic depends on EPIC-02's Neon branching and schema being provisioned first; the writes use the pooled `DATABASE_URL`, never the unpooled `DATABASE_URL_UNPOOLED` reserved for DDL and migrations.
+Ingestion runs the existing `ebay-sold-listings` Apify actor as the single sanctioned out-of-band scraping exception; the main application calls official data sources only and issues no scraping itself. The actor is invoked from the Apify Platform with an `APIFY_TOKEN`, its dataset results are persisted to the `raw_listing` table, and a GitHub Actions cron workflow (`ingest.yml`) drives the daily run. Because every ingestion write targets the database, this epic depends on EPIC-02's Neon two-environment branching (the `production` and `dev-qa` branches) and schema being provisioned first; the writes use the pooled `DATABASE_URL`, never the unpooled `DATABASE_URL_UNPOOLED` reserved for DDL and migrations.
 
 **Runtime floor:** Node `>=18` for the actor, which the Apify container pins at Node 20 (`apify/actor-node:20`).
 
@@ -18,19 +18,19 @@ Ingestion runs the existing `ebay-sold-listings` Apify actor as the single sanct
 
 | Platform | Access required | Purpose in EPIC-03 |
 |----------|-----------------|--------------------|
-| Blitzy | Dev/Staging/Prod environments; plaintext variables and encrypted secrets | Store the ingestion secrets (`APIFY_TOKEN`, `LLM_API_KEY`, the pooled `DATABASE_URL`) per the Blitzy environments reference |
+| Blitzy | single environment (manual build/run + hand-entered secrets); plaintext variables and encrypted secrets | Store the ingestion secrets (`APIFY_TOKEN`, `LLM_API_KEY`, the pooled `DATABASE_URL`) in the single Blitzy environment per the Blitzy environments reference |
 | Apify Platform | Account access; `APIFY_TOKEN`; actor execution rights for `ebay-sold-listings` | Invoke the actor as the primary live ingestion source and read its dataset results |
 | GitHub Actions | CI runners; encrypted repository or organization secrets; scheduled cron | Run the daily `ingest.yml` workflow on cron `0 8 * * *` plus `workflow_dispatch`, injecting the ingestion secrets |
 | eBay Developer API | `EBAY_CLIENT_ID` / `EBAY_CLIENT_SECRET` — **DEFERRED, blocked on approved access** | Documented future Browse/Marketplace-Insights source; not configured and not a dependency of any active story |
 
 ### Step-by-step configuration (complete before ingestion runs)
 
-1. Create the Blitzy environments and store `APIFY_TOKEN`, `LLM_API_KEY`, and the pooled `DATABASE_URL` as encrypted secrets, with non-sensitive values stored as plaintext, per <https://docs.blitzy.com/administration/environments>.
+1. Configure the single Blitzy environment and store `APIFY_TOKEN`, `LLM_API_KEY`, and the pooled `DATABASE_URL` as encrypted secrets, with non-sensitive values stored as plaintext, per <https://docs.blitzy.com/administration/environments> (informational only — Blitzy cannot create environments).
 2. Grant the ingestion job Apify Platform access and confirm the `APIFY_TOKEN` invokes the `ebay-sold-listings` actor and reads its dataset.
-3. Confirm EPIC-02's Neon branching and schema are provisioned and that the pooled `DATABASE_URL` reaches the `raw_listing`, `extraction`, `sale_observation`, `valuation`, `ingestion_run`, and `review_queue` tables before the first write.
+3. Confirm EPIC-02's Neon two-environment branching (the `production` and `dev-qa` branches) and schema are provisioned and that the pooled `DATABASE_URL` reaches the `raw_listing`, `extraction`, `sale_observation`, `valuation`, `ingestion_run`, and `review_queue` tables before the first write.
 4. Configure the GitHub Actions secrets the `ingest.yml` workflow consumes (`APIFY_TOKEN`, `LLM_API_KEY`, `DATABASE_URL`) so the cron `0 8 * * *` run and the `workflow_dispatch` run resolve them.
 5. Leave the eBay Developer API credentials (`EBAY_CLIENT_ID` / `EBAY_CLIENT_SECRET`) unconfigured: the eBay integration is deferred and blocked on approved access and is not required for any active ingestion run.
-6. Validate the wiring with a single bounded actor invocation (a small `maxItems` cap) that writes to `raw_listing` on a Neon branch, confirming the environment is provisioned before the first scheduled run.
+6. Validate the wiring with a single bounded actor invocation (a small `maxItems` cap) that writes to `raw_listing` on the relevant Neon branch (`dev-qa` for non-production runs, `production` for production), confirming the environment is provisioned before the first scheduled run.
 
 ## Features Index
 
@@ -44,8 +44,8 @@ This epic is delivered through three features. Each link is relative to this fil
 
 ### Upstream (must be complete first)
 
-- **EPIC-01 — Environment & Configuration Foundation:** supplies the Blitzy environments, the secrets baseline (`APIFY_TOKEN`, `LLM_API_KEY`, `DATABASE_URL`), and the GitHub Actions secrets the `ingest.yml` workflow consumes.
-- **EPIC-02 — Database Platform & Schema:** supplies the Neon branching topology and the Drizzle schema and access layer; every data-write story in this epic requires the database, writing to `raw_listing`, `extraction`, `sale_observation`, `valuation`, `ingestion_run`, and `review_queue` through the pooled `DATABASE_URL`. The branching stories (`STORY-02-01-*`) are a hard prerequisite of every ingestion write.
+- **EPIC-01 — Environment & Configuration Foundation:** supplies the single Blitzy environment, the secrets baseline (`APIFY_TOKEN`, `LLM_API_KEY`, `DATABASE_URL`), and the GitHub Actions secrets the `ingest.yml` workflow consumes.
+- **EPIC-02 — Database Platform & Schema:** supplies the Neon two-environment branching topology (the `production` and `dev-qa` branches) and the Drizzle schema and access layer; every data-write story in this epic requires the database, writing to `raw_listing`, `extraction`, `sale_observation`, `valuation`, `ingestion_run`, and `review_queue` through the pooled `DATABASE_URL`. The branching stories (`STORY-02-01-*`) are a hard prerequisite of every ingestion write.
 
 ### Downstream (informational — not a build prerequisite of this epic)
 

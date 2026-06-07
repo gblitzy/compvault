@@ -4,13 +4,13 @@
 
 ## User Story
 
-> As a **Release Engineer**, I want a `ci.yml` GitHub Actions workflow that runs the TypeScript typecheck (`tsc --noEmit`), ESLint, and Vitest on every pull request using a Node `>=18` runner, so that type errors, lint violations, and failing tests are caught on each pull request before code reaches `main`.
+> As a **Release Engineer**, I want a `ci.yml` GitHub Actions workflow that runs the TypeScript typecheck (`tsc --noEmit`), ESLint, and Vitest on every pull request using a Node `>=20.20.2` runner, so that type errors, lint violations, and failing tests are caught on each pull request before code reaches `main`.
 
-This story describes the base continuous-integration workflow; it does not author the workflow file. The `ci.yml` file lives under `.github/workflows/` alongside `ingest.yml` and `migrate.yml`, and it is triggered by the `pull_request` event rather than on a schedule, so no cron expression is defined here. The workflow runs exactly three checks against the project — the TypeScript typecheck (`tsc --noEmit`), ESLint, and Vitest — on a hosted Node `>=18` runner, the toolchain floor set by both the TypeScript application and the JavaScript Apify actor. A non-zero exit from any step fails the GitHub Action and marks the job failed. This is the base workflow that `STORY-06-03-02` (coverage and secret gates) and `STORY-06-03-03` (branch protection) build on top of. This is a planning ticket; the `ci.yml` workflow file itself is authored when this story is executed.
+This story describes the base continuous-integration workflow; it does not author the workflow file. The `ci.yml` file lives under `.github/workflows/` alongside `ingest.yml` and `migrate.yml`, and it is triggered by the `pull_request` event rather than on a schedule, so no cron expression is defined here. The workflow runs exactly three checks against the project — the TypeScript typecheck (`tsc --noEmit`), ESLint, and Vitest — on a hosted Node `>=20.20.2` runner — the TypeScript application's toolchain floor (root `package.json` `engines.node`); the JavaScript Apify actor keeps its own floor of Node `>=18` (from `apify/package.json`), which the runner's `>=20.20.2` satisfies. A non-zero exit from any step fails the GitHub Action and marks the job failed. This is the base workflow that `STORY-06-03-02` (coverage and secret gates) and `STORY-06-03-03` (branch protection) build on top of. This is a planning ticket; the `ci.yml` workflow file itself is authored when this story is executed.
 
 ## Acceptance Criteria
 
-1. **(input-validation — trigger)** *Given* `ci.yml` is committed under `.github/workflows/`, *When* a pull request targeting `main` is opened or updated, *Then* the workflow is triggered by the `pull_request` event and starts its job on a Node `>=18` runner.
+1. **(input-validation — trigger)** *Given* `ci.yml` is committed under `.github/workflows/`, *When* a pull request targeting `main` is opened or updated, *Then* the workflow is triggered by the `pull_request` event and starts its job on a Node `>=20.20.2` runner.
 
 2. **(valid-output — happy path)** *Given* a pull request whose code passes all checks, *When* the workflow runs, *Then* the `tsc --noEmit` step, the ESLint step, and the Vitest step each exit zero and the job reports a green status.
 
@@ -27,7 +27,7 @@ This story describes the base continuous-integration workflow; it does not autho
 ## Sub-tasks
 
 - Define the `ci.yml` workflow triggered on `pull_request` events. `@release-engineer`
-- Add a Node `>=18` setup step and a deterministic dependency-install step. `@release-engineer`
+- Add a Node `>=20.20.2` setup step (which also satisfies the Apify actor's own `>=18` floor) and a deterministic dependency-install step. `@release-engineer`
 - Add a typecheck step that runs `tsc --noEmit`. `@release-engineer`
 - Add an ESLint step. `@release-engineer`
 - Add a Vitest step that runs the suites from `FEATURE-06-02`. `@release-engineer`
@@ -50,14 +50,14 @@ This story describes the base continuous-integration workflow; it does not autho
 ## Story Estimation Guidance
 
 - **Effort:** Medium — author a multi-step workflow and validate it against passing and deliberately failing pull requests.
-- **Complexity:** Medium — three coordinated checks on a hosted Node `>=18` runner.
+- **Complexity:** Medium — three coordinated checks on a hosted Node `>=20.20.2` runner.
 - **Uncertainty:** Low — the workflow shape (typecheck, lint, and test on pull request) is fixed by the PRD.
 - **Fibonacci points:** **3** — the bounded three-check shape on a single hosted runner holds this below a 5, while the multi-step authoring and the pass/fail validation place it above a 1.
 
 ## Definition of Done
 
 - [ ] `ci.yml` exists under `.github/workflows/` and triggers on `pull_request` events.
-- [ ] The workflow runs `tsc --noEmit`, ESLint, and Vitest on a Node `>=18` runner.
+- [ ] The workflow runs `tsc --noEmit`, ESLint, and Vitest on a Node `>=20.20.2` runner.
 - [ ] Any step's non-zero exit fails the job.
 - [ ] The workflow's status-check name is documented for branch protection.
 - [ ] **Testing:** `ci.yml` runs green on a sample pull request with all three checks executing, and a pull request containing a deliberate type error, a lint violation, or a failing test is marked failed.

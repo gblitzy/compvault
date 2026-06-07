@@ -56,7 +56,7 @@ The resolve endpoint is **action-driven**: the request body carries an `action` 
 - [ ] Map an `id` that matches no `review_queue` row to HTTP 404 with a named `error` field, and a resolve whose `state = 'open'`-guarded conditional update matches zero rows (already `resolved`/`dismissed`, including the losing concurrent request) to HTTP 409 with `resolved_at`/`resolved_by` unchanged (@backend-engineer)
 - [ ] Return every 4xx through the shared safe error envelope from `STORY-04-01-03` (a stable public `error` field only; redacted server-side logging; never expose a stack trace, SQL, connection string, secret, or internal exception message) (@backend-engineer)
 - [ ] Thread the operator `userId` from the `getUserId()` seam, gate both endpoints to the operator role, and read the pooled `DATABASE_URL` only — never the unpooled `DATABASE_URL_UNPOOLED` (@backend-engineer)
-- [ ] Author API integration tests against a per-CI Neon branch covering the list default, the `state`/`kind` filters and their 400 paths, each `action` side effect (approve/correct/dismiss/confirm/merge), the merge repoint of `sale_observation`/`card_character` to the survivor, the malformed-`id` and invalid-`action` 400 paths, the 404 path, and the concurrent-resolution path where exactly one request wins (@qa-engineer)
+- [ ] Author API integration tests against the `dev-qa` Neon branch covering the list default, the `state`/`kind` filters and their 400 paths, each `action` side effect (approve/correct/dismiss/confirm/merge), the merge repoint of `sale_observation`/`card_character` to the survivor, the malformed-`id` and invalid-`action` 400 paths, the 404 path, and the concurrent-resolution path where exactly one request wins (@qa-engineer)
 - [ ] Confirm the request handlers issue zero LLM calls and source data through official APIs only (@tech-lead)
 
 ## Edge Cases
@@ -78,7 +78,7 @@ The resolve endpoint is **action-driven**: the request body carries an `action` 
 ### Downstream (informational — not a build prerequisite of this story)
 
 - **[EPIC-05 — Frontend User Interface](../../EPIC-05-frontend-user-interface.md):** the operator review-queue workbench (`STORY-05-03-03`) consumes the list and resolve endpoints this story exposes.
-- **[EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md):** `STORY-06-02-02` integration-tests these API routes against a per-CI Neon branch at an API coverage floor of **≥75%**.
+- **[EPIC-06 — Testing & CI/CD Quality Gates](../../EPIC-06-testing-and-cicd-quality-gates.md):** `STORY-06-02-02` integration-tests these API routes against the `dev-qa` Neon branch at an API coverage floor of **≥75%**. Because previews and CI now share the single `dev-qa` branch, per-run database isolation is lost — concurrent CI runs and open PRs share `dev-qa` state. This is the inherent consequence of the two-environment model. See the lost-isolation note in `STORY-04-01-01` and EPIC-02.
 
 ### Parent feature
 
@@ -102,4 +102,4 @@ The resolve endpoint is **action-driven**: the request body carries an `action` 
 - [ ] Every 4xx response uses the shared safe error envelope from `STORY-04-01-03`: a stable public `error` field only, with no stack trace, SQL, connection string, secret, or internal exception message exposed, and redacted diagnostics logged server-side.
 - [ ] The handlers read the pooled `DATABASE_URL` (never the unpooled `DATABASE_URL_UNPOOLED`), thread the operator `userId` from the `getUserId()` seam (v1 = the single seeded operator), gate both endpoints to the operator role, and issue zero LLM calls.
 - [ ] No prohibited vague quality term appears in any acceptance-criteria statement; every such statement names a measurable pass/fail condition (an HTTP status code, an exact enum value, or an exact column or error-field name).
-- [ ] **Testing:** API integration tests against a per-CI Neon branch pass, including each action's side effect, the merge repoint, and the concurrent-resolution case, with a ≥75% coverage target.
+- [ ] **Testing:** API integration tests against the `dev-qa` Neon branch pass, including each action's side effect, the merge repoint, and the concurrent-resolution case, with a ≥75% coverage target.

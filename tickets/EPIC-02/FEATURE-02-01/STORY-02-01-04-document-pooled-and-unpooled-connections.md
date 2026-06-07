@@ -2,7 +2,7 @@
 
 *Parent feature: [FEATURE-02-01 — Neon Project & Branching Topology](../FEATURE-02-01-neon-project-and-branching-topology.md) · Parent epic: [EPIC-02 — Database Platform & Schema](../../EPIC-02-database-platform-and-schema.md)*
 
-This is the fourth and final story of FEATURE-02-01. It documents the pooled-versus-unpooled connection-string discipline that every later database, ingestion, and test write depends on, and it verifies the existing local Neon connection by applying the full migration set and running the integration suite locally, recording the connection-error count and logging any gap as an open item. It builds on the Neon project and production branch from [STORY-02-01-01](STORY-02-01-01-provision-neon-project-and-production-branch.md), the per-PR preview branches from [STORY-02-01-02](STORY-02-01-02-configure-per-pr-preview-branches.md), and the per-CI ephemeral branches from [STORY-02-01-03](STORY-02-01-03-configure-per-ci-ephemeral-branches.md); together they complete EPIC-02's hard prerequisite — Neon branching and connection discipline are established before any schema, migration, ingestion, or test write runs. This story does not provision the connection strings; it reads the encrypted secrets created in STORY-02-01-01 and documents the rule for using each.
+This is the fourth and final story of FEATURE-02-01. It documents the pooled-versus-unpooled connection-string discipline that every later database, ingestion, and test write depends on, and it verifies the existing local Neon connection by applying the full migration set and running the integration suite locally, recording the connection-error count and logging any gap as an open item. It builds on the Neon project and `production` branch from [STORY-02-01-01](STORY-02-01-01-provision-neon-project-and-production-branch.md) and the shared long-lived `dev-qa` branch documented in [STORY-02-01-02](STORY-02-01-02-configure-per-pr-preview-branches.md) and [STORY-02-01-03](STORY-02-01-03-configure-per-ci-ephemeral-branches.md); together they complete EPIC-02's hard prerequisite — Neon branching and connection discipline are established before any schema, migration, ingestion, or test write runs. This story does not provision the connection strings; it reads the encrypted secrets created in STORY-02-01-01 and documents the rule for using each.
 
 ## User Story
 
@@ -10,12 +10,12 @@ This is the fourth and final story of FEATURE-02-01. It documents the pooled-ver
 
 ## Environment Access & Configuration
 
-- **Canonical reference.** All environment provisioning for this story follows the Blitzy environments reference at <https://docs.blitzy.com/administration/environments>. Per that reference, an environment is created for each target, build and run instructions are supplied in natural language, non-sensitive values are stored as **plaintext variables** and sensitive credentials are stored as **encrypted secrets**, and the environment is then **attached to the project**.
+- **Canonical reference.** All environment provisioning for this story follows the Blitzy environments reference at <https://docs.blitzy.com/administration/environments>. Per that reference (informational — Blitzy cannot create environments), the single Blitzy environment is configured manually, build and run instructions are supplied in natural language, non-sensitive values are stored as **plaintext variables** and sensitive credentials are stored as **encrypted secrets**, and the environment is then **attached to the project**.
 - **Connection strings (both stored as encrypted secrets).** Two connection strings are kept distinct and stored as encrypted secrets in **Blitzy**, then consumed by the Neon-connected runtime and migration tooling:
   - **Pooled `DATABASE_URL`** — the PgBouncer-pooled connection read at application **runtime**, where many short-lived serverless invocations share one bounded pool instead of exhausting raw Postgres connections.
   - **Unpooled `DATABASE_URL_UNPOOLED`** — the **direct** connection used for **DDL and migrations** (`drizzle-kit` and the `migrate.yml` rehearsal authored in FEATURE-02-02).
 - **Mixing the two breaks migrations.** DDL and migrations run only on the unpooled `DATABASE_URL_UNPOOLED`; runtime reads run only on the pooled `DATABASE_URL`. Running a migration over the pooled `DATABASE_URL` is the documented failure mode — migrations break, because the pooled connection is not valid for DDL and migrations.
-- **Driver stack.** The Neon serverless driver stack consumed by the runtime client is `@neondatabase/serverless` plus `ws`, on **Node `>=18`**. The attached environment setup command `npm install @neondatabase/serverless ws` is recorded here as **content** for the access-layer feature (FEATURE-02-03) and is **not executed** by this documentation work.
+- **Driver stack.** The Neon serverless driver stack consumed by the runtime client is `@neondatabase/serverless` plus `ws`, on **Node `>=20.20.2`** (the application engine floor from the root `package.json`; the earlier `>=18` originated from the Apify actor's `apify/package.json`). The attached environment setup command `npm install @neondatabase/serverless ws` is recorded here as **content** for the access-layer feature (FEATURE-02-03) and is **not executed** by this documentation work.
 - **Engine floor.** Both connection strings target a **PostgreSQL 15+** database; the `valuation` table's `UNIQUE NULLS NOT DISTINCT` constraint is rejected by any Postgres server below 15.
 - **Source of the strings.** The pooled and unpooled connection strings are provisioned and stored as encrypted secrets in [STORY-02-01-01](STORY-02-01-01-provision-neon-project-and-production-branch.md); this story reads them and documents the usage rule rather than duplicating those provisioning steps.
 
@@ -23,14 +23,14 @@ This is the fourth and final story of FEATURE-02-01. It documents the pooled-ver
 
 | Platform | Access required | Purpose in STORY-02-01-04 |
 |----------|-----------------|---------------------------|
-| Blitzy | Environment per target; plaintext variables and encrypted secrets | Confirm the pooled `DATABASE_URL` and the unpooled `DATABASE_URL_UNPOOLED` are stored as encrypted secrets per <https://docs.blitzy.com/administration/environments> |
-| Neon | Pooled and unpooled connection strings for the production branch and the local development branch | Read the two connection strings to document the runtime-versus-migration rule and to verify the existing local Neon connection |
+| Blitzy | The single Blitzy environment; plaintext variables and encrypted secrets | Confirm the pooled `DATABASE_URL` and the unpooled `DATABASE_URL_UNPOOLED` are stored as encrypted secrets per <https://docs.blitzy.com/administration/environments> |
+| Neon | Pooled and unpooled connection strings for the `production` and `dev-qa` branches | Read the two connection strings to document the runtime-versus-migration rule and to verify the existing local Neon connection (local development uses the shared `dev-qa` branch) |
 
 ### Step-by-step configuration
 
 1. Confirm in **Blitzy** that the pooled `DATABASE_URL` and the unpooled `DATABASE_URL_UNPOOLED` are each stored as **encrypted secrets** (with non-sensitive values stored as plaintext variables), per <https://docs.blitzy.com/administration/environments>, sourced from STORY-02-01-01.
 2. Document the usage rule: runtime reads resolve the pooled `DATABASE_URL`; DDL and migrations resolve the unpooled `DATABASE_URL_UNPOOLED`; mixing the two breaks migrations.
-3. Name the `@neondatabase/serverless` plus `ws` driver stack on Node `>=18` as the runtime connection driver, and record `npm install @neondatabase/serverless ws` as content (not executed here).
+3. Name the `@neondatabase/serverless` plus `ws` driver stack on Node `>=20.20.2` as the runtime connection driver, and record `npm install @neondatabase/serverless ws` as content (not executed here).
 4. Verify the existing local Neon connection by applying the full migration set through the unpooled `DATABASE_URL_UNPOOLED` and running the integration suite through the pooled `DATABASE_URL`; record the connection-error count.
 5. Log any local-access gap discovered in step 4 as an open item (see the Open Question / Note below).
 
@@ -40,7 +40,7 @@ This is the fourth and final story of FEATURE-02-01. It documents the pooled-ver
 2. **(error-handling)** **Given** the pooled `DATABASE_URL` is used for a migration, **When** the documented failure mode is described, **Then** it states migrations break — the pooled connection is not valid for DDL and migrations.
 3. **(input-validation)** **Given** a missing or empty connection string, **When** the runtime or the migration tooling starts, **Then** it fails fast with a named error that identifies the absent variable — `DATABASE_URL` for the runtime or `DATABASE_URL_UNPOOLED` for migrations — and 0 queries run.
 4. **(edge-case — local-Neon verification)** **Given** the existing local Neon connection, **When** the full migration set is applied and the integration suite is run locally, **Then** the connection-error count is recorded and any failure is recorded as an open item.
-5. **(valid-output)** **Given** the documentation, **When** the driver stack is reviewed, **Then** it names `@neondatabase/serverless` plus `ws` on Node `>=18` as the runtime connection driver and records `npm install @neondatabase/serverless ws` as content that this story does not execute.
+5. **(valid-output)** **Given** the documentation, **When** the driver stack is reviewed, **Then** it names `@neondatabase/serverless` plus `ws` on Node `>=20.20.2` as the runtime connection driver and records `npm install @neondatabase/serverless ws` as content that this story does not execute.
 6. **(input-validation — secret storage)** **Given** the environment setup follows <https://docs.blitzy.com/administration/environments>, **When** the two connection strings are stored, **Then** the pooled `DATABASE_URL` and the unpooled `DATABASE_URL_UNPOOLED` are each stored as an **encrypted secret** and not as a plaintext variable; storing either as a plaintext variable fails review.
 
 ## Open Question / Note
@@ -50,7 +50,7 @@ This is the fourth and final story of FEATURE-02-01. It documents the pooled-ver
 ## Sub-tasks
 
 - Document the pooled `DATABASE_URL` (runtime) versus unpooled `DATABASE_URL_UNPOOLED` (DDL and migrations) split and the "mixing breaks migrations" failure mode — `@database-engineer`
-- Document the `@neondatabase/serverless` plus `ws` driver stack (Node `>=18`; `npm install @neondatabase/serverless ws` recorded as content, not executed) — `@database-engineer`
+- Document the `@neondatabase/serverless` plus `ws` driver stack (Node `>=20.20.2`; `npm install @neondatabase/serverless ws` recorded as content, not executed) — `@database-engineer`
 - Verify the existing local Neon connection by applying the full migration set and running the integration suite locally; record the connection-error count — `@database-engineer`
 - Record any local-access gap as an open item — `@platform-engineer`
 - Confirm both connection strings are stored as encrypted secrets per <https://docs.blitzy.com/administration/environments> — `@platform-engineer`
@@ -67,7 +67,7 @@ This is the fourth and final story of FEATURE-02-01. It documents the pooled-ver
 ### Upstream (must be complete first)
 
 - **[STORY-02-01-01 — Provision the Neon Project & Production Branch](STORY-02-01-01-provision-neon-project-and-production-branch.md):** provisions the pooled and unpooled connection strings and stores them as encrypted secrets; this story reads them and documents the usage rule.
-- **`EPIC-01` — Environment & Configuration Foundation:** supplies the Blitzy environments and the secrets baseline into which both connection strings are stored. Cited cross-epic by identifier.
+- **`EPIC-01` — Environment & Configuration Foundation:** supplies the single Blitzy environment and the secrets baseline into which both connection strings are stored. Cited cross-epic by identifier.
 
 ### Downstream (informational — not a build prerequisite of this story)
 
@@ -76,7 +76,7 @@ This is the fourth and final story of FEATURE-02-01. It documents the pooled-ver
 
 ### Sibling stories
 
-- **[STORY-02-01-02 — Configure Per-PR Preview Branches](STORY-02-01-02-configure-per-pr-preview-branches.md)** and **[STORY-02-01-03 — Configure Per-CI Ephemeral Branches](STORY-02-01-03-configure-per-ci-ephemeral-branches.md):** the per-branch connection strings those branches expose follow the same pooled-versus-unpooled rule documented in this story.
+- **[STORY-02-01-02 — Configure Preview Deployments Against the Shared Dev/QA Branch](STORY-02-01-02-configure-per-pr-preview-branches.md)** and **[STORY-02-01-03 — Configure CI Against the Shared Dev/QA Branch](STORY-02-01-03-configure-per-ci-ephemeral-branches.md):** the `dev-qa` branch connection strings those stories expose follow the same pooled-versus-unpooled rule documented in this story.
 
 ## Story Estimation Guidance
 
@@ -88,7 +88,7 @@ This is the fourth and final story of FEATURE-02-01. It documents the pooled-ver
 ## Definition of Done
 
 - [ ] The pooled-versus-unpooled discipline is documented — runtime reads use the pooled `DATABASE_URL`, DDL and migrations use the unpooled `DATABASE_URL_UNPOOLED` — including the "mixing breaks migrations" failure mode.
-- [ ] The `@neondatabase/serverless` plus `ws` driver stack on Node `>=18` is named, with `npm install @neondatabase/serverless ws` recorded as content and not executed by this documentation work.
+- [ ] The `@neondatabase/serverless` plus `ws` driver stack on Node `>=20.20.2` is named, with `npm install @neondatabase/serverless ws` recorded as content and not executed by this documentation work.
 - [ ] The PostgreSQL 15+ engine floor is stated, anchored to the `valuation` table's `UNIQUE NULLS NOT DISTINCT` constraint.
 - [ ] Both connection strings are confirmed stored as encrypted secrets per <https://docs.blitzy.com/administration/environments>, not as plaintext variables, sourced from STORY-02-01-01.
 - [ ] The existing local Neon connection has been verified by applying the full migration set and running the integration suite locally, with the connection-error count and any gap recorded as an open item.

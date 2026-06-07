@@ -8,7 +8,7 @@ This feature delivers the CompVault discovery surface: a character-first search 
 
 ## Environment Access & Configuration
 
-The platform access these views require — Blitzy encrypted secrets for server-side credentials, and Vercel preview deployments with per-scope environment access — is provisioned once in [FEATURE-05-01 — Frontend Foundation & Environment Access](FEATURE-05-01-frontend-foundation-and-environment-access.md) and documented per the canonical Blitzy environments reference <https://docs.blitzy.com/administration/environments>; the full step-by-step environment configuration is not duplicated here.
+The platform access these views require — Blitzy encrypted secrets for server-side credentials, and the Vercel Production and Preview (= dev/qa) deployment scopes with per-scope environment access — is provisioned once in [FEATURE-05-01 — Frontend Foundation & Environment Access](FEATURE-05-01-frontend-foundation-and-environment-access.md) and documented per the canonical Blitzy environments reference <https://docs.blitzy.com/administration/environments>; the full step-by-step environment configuration is not duplicated here.
 
 These views render live data only after the EPIC-04 endpoints they read — character search with autocomplete, and the two-column digital | physical results — respond from the configured API base URL in the active Vercel scope. The browser receives only the client-safe public API base URL; server-side credentials such as `DATABASE_URL` remain in encrypted secrets and never enter the browser bundle.
 
